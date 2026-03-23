@@ -19,10 +19,16 @@ class Nexus_Stats_DB {
             view_datetime datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             device_type varchar(10) DEFAULT 'desktop',
             read_time_seconds int(11) DEFAULT 0,
+            referrer_type varchar(20) DEFAULT 'direct',
+            referrer_domain varchar(100) DEFAULT '',
+            country_code varchar(2) DEFAULT 'XX',
+            browser_lang varchar(5) DEFAULT 'en',
             PRIMARY KEY  (id),
             KEY post_id (post_id),
             KEY visitor_id (visitor_id),
-            KEY view_datetime (view_datetime)
+            KEY view_datetime (view_datetime),
+            KEY referrer_type (referrer_type),
+            KEY country_code (country_code)
         ) $charset_collate;";
 
         // Table 2 : Visiteurs en Direct (S'auto-nettoie)
@@ -56,24 +62,105 @@ class Nexus_Stats_DB {
             UNIQUE KEY post_selector (post_id, element_selector(191))
         ) $charset_collate;";
 
+        // Table 5 : Local IP Country Cache (RGPD+)
+        $table_ip_cache = $wpdb->prefix . 'nexus_stats_ip_cache';
+        $sql5 = "CREATE TABLE $table_ip_cache (
+            ip_hash varchar(64) NOT NULL,
+            country_code varchar(2) NOT NULL,
+            last_checked datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (ip_hash)
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql1);
         dbDelta($sql2);
         dbDelta($sql3);
         dbDelta($sql4);
+        dbDelta($sql5);
+    }
+
+    // Helper : Get Country Code safely (RGPD+)
+    public static function get_country_code($ip) {
+        if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1') return 'XX';
+
+        global $wpdb;
+        $table_ip_cache = $wpdb->prefix . 'nexus_stats_ip_cache';
+        $ip_hash = md5($ip . wp_salt()); // Hash IP so it's never stored in clear text
+
+        // Check cache
+        $cached_country = $wpdb->get_var($wpdb->prepare("SELECT country_code FROM $table_ip_cache WHERE ip_hash = %s", $ip_hash));
+        if ($cached_country) return $cached_country;
+
+        // Fallback API if no GeoLite2 is present (Note: For a real 2026 local DB, you'd use a maxmind reader library here.
+        // Using a free API with a timeout as a placeholder since we can't bundle a 60MB Maxmind DB).
+        $response = wp_remote_get("http://ip-api.com/json/{$ip}?fields=countryCode", ['timeout' => 2]);
+        $country = 'XX';
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
+            $body = json_decode(wp_remote_retrieve_body($response));
+            if (!empty($body->countryCode)) $country = strtoupper($body->countryCode);
+        }
+
+        // Save to cache
+        $wpdb->replace($table_ip_cache, ['ip_hash' => $ip_hash, 'country_code' => $country]);
+        return $country;
+    }
+
+    // Helper : Parse Referrer & Detect Dark Traffic
+    public static function parse_traffic_source($referrer_url, $is_home) {
+        if (empty($referrer_url)) {
+            // Dark Traffic Logic: Empty referrer + deep link (not home) = Private Share (WhatsApp/Signal)
+            return $is_home ? ['type' => 'direct', 'domain' => ''] : ['type' => 'private', 'domain' => 'Dark Social'];
+        }
+
+        $parsed = parse_url($referrer_url);
+        $domain = isset($parsed['host']) ? strtolower(str_replace('www.', '', $parsed['host'])) : '';
+
+        // Search Engines
+        if (preg_match('/google\.|bing\.|yahoo\.|duckduckgo\.|yandex\.|qwant\./', $domain)) {
+            return ['type' => 'search', 'domain' => $domain];
+        }
+
+        // Social Networks
+        if (preg_match('/facebook\.|t\.co|twitter\.|x\.|instagram\.|linkedin\.|pinterest\.|tiktok\./', $domain)) {
+            return ['type' => 'social', 'domain' => $domain];
+        }
+
+        // Self (Internal traffic)
+        $home_url = parse_url(home_url(), PHP_URL_HOST);
+        if ($domain === str_replace('www.', '', $home_url)) {
+            return ['type' => 'internal', 'domain' => $domain];
+        }
+
+        // Referral (Other sites)
+        return ['type' => 'referral', 'domain' => $domain];
     }
 
     // Helper : Track a view
-    public static function track_view($post_id, $visitor_id, $device_type = 'desktop') {
+    public static function track_view($post_id, $visitor_id, $device_type = 'desktop', $referrer = '', $lang = 'en') {
         global $wpdb;
         $table_log = $wpdb->prefix . 'nexus_stats_views_log';
+
+        // Process IP for Geolocation (Anonymized)
+        $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
+        $country_code = self::get_country_code(explode(',', $ip)[0]);
+
+        // Process Referrer
+        $is_home = (get_option('page_on_front') == $post_id) || ($post_id == 0);
+        $source = self::parse_traffic_source($referrer, $is_home);
+
+        // Process Language (Extract just the 2 letter code, e.g., 'fr-FR' -> 'fr')
+        $lang_code = strtolower(substr($lang, 0, 2));
 
         $wpdb->suppress_errors = true;
         $wpdb->insert($table_log, array(
             'post_id'       => $post_id,
             'visitor_id'    => $visitor_id,
             'device_type'   => $device_type,
-            'view_datetime' => current_time('mysql')
+            'view_datetime' => current_time('mysql'),
+            'referrer_type' => $source['type'],
+            'referrer_domain'=> substr($source['domain'], 0, 100),
+            'country_code'  => $country_code,
+            'browser_lang'  => $lang_code
         ));
 
         $current_views = (int) get_post_meta($post_id, 'nexus_stats_view_count', true);

@@ -85,14 +85,28 @@ class Nexus_Stats_REST {
         ]);
     }
 
-    public static function check_admin_permissions() {
-        return current_user_can('manage_options');
+    public static function check_admin_permissions(WP_REST_Request $request) {
+        if (current_user_can('manage_options')) {
+            return true;
+        }
+
+        // Handle Client-Ready Shared Dashboard Authorization
+        $share_token = $request->get_header('X-Nexus-Stats-Share');
+        $saved_token = get_option('nexus_stats_share_token', '');
+        if (!empty($saved_token) && !empty($share_token) && $share_token === $saved_token) {
+            return true;
+        }
+
+        return false;
     }
 
     public static function track_view(WP_REST_Request $request) {
         $post_id    = intval($request->get_param('post_id'));
         $visitor_id = sanitize_text_field($request->get_param('visitor_id'));
         $device     = sanitize_text_field($request->get_param('device'));
+        $referrer   = sanitize_text_field($request->get_param('referrer'));
+
+        $lang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? sanitize_text_field($_SERVER['HTTP_ACCEPT_LANGUAGE']) : 'en';
 
         if (!$visitor_id) $visitor_id = 'unknown';
         if (!$device) $device = 'desktop';
@@ -108,7 +122,7 @@ class Nexus_Stats_REST {
         }
 
         if ($post_id > 0) {
-            Nexus_Stats_DB::track_view($post_id, $visitor_id, $device);
+            Nexus_Stats_DB::track_view($post_id, $visitor_id, $device, $referrer, $lang);
         }
 
         return rest_ensure_response(['success' => true]);
@@ -346,6 +360,75 @@ class Nexus_Stats_REST {
             WHERE view_datetime >= %s
         ", $month_start));
 
+        // Sources (Categories)
+        $sources = $wpdb->get_results($wpdb->prepare("
+            SELECT referrer_type, COUNT(id) as count
+            FROM $table_name
+            WHERE view_datetime >= %s AND view_datetime <= %s
+            GROUP BY referrer_type
+        ", $start_date, $end_date));
+
+        // Top Referrers (Domains) + Read Time Correlation
+        $referrers = $wpdb->get_results($wpdb->prepare("
+            SELECT referrer_domain, referrer_type, COUNT(id) as count, AVG(read_time_seconds) as avg_time
+            FROM $table_name
+            WHERE view_datetime >= %s AND view_datetime <= %s AND referrer_type != 'direct' AND referrer_type != 'internal'
+            GROUP BY referrer_domain, referrer_type
+            ORDER BY count DESC
+            LIMIT 5
+        ", $start_date, $end_date));
+
+        // Countries
+        $countries = $wpdb->get_results($wpdb->prepare("
+            SELECT country_code, COUNT(id) as count
+            FROM $table_name
+            WHERE view_datetime >= %s AND view_datetime <= %s
+            GROUP BY country_code
+            ORDER BY count DESC
+            LIMIT 10
+        ", $start_date, $end_date));
+
+        // Languages
+        $languages = $wpdb->get_results($wpdb->prepare("
+            SELECT browser_lang, COUNT(id) as count
+            FROM $table_name
+            WHERE view_datetime >= %s AND view_datetime <= %s
+            GROUP BY browser_lang
+            ORDER BY count DESC
+            LIMIT 5
+        ", $start_date, $end_date));
+
+        // Get Previous Period Data for Comparison (if requested)
+        $compare = sanitize_text_field($request->get_param('compare')) === 'true';
+        $chart_values_prev = [];
+        if ($compare) {
+            $diff_seconds = strtotime($end_date) - strtotime($start_date);
+            $prev_end_date = $start_date;
+            $prev_start_date = date('Y-m-d H:i:s', strtotime($start_date) - $diff_seconds);
+
+            $chart_results_prev = $wpdb->get_results($wpdb->prepare("
+                SELECT DATE_FORMAT(view_datetime, %s) as time_label, COUNT(id) as view_count
+                FROM $table_name
+                WHERE view_datetime >= %s AND view_datetime <= %s
+                GROUP BY time_label
+                ORDER BY view_datetime ASC
+            ", $group_format, $prev_start_date, $prev_end_date));
+
+            // Align previous data with current labels for overlaying correctly on the chart
+            $temp_prev = [];
+            if ($chart_results_prev) {
+                foreach ($chart_results_prev as $row) {
+                    $temp_prev[$row->time_label] = $row->view_count;
+                }
+            }
+            // Map to current labels (approximate visualization)
+            foreach ($chart_labels as $label) {
+                // In a perfect system, we'd shift the labels by the exact time diff.
+                // For simplicity in this demo, we just align by index or pad 0s.
+                $chart_values_prev[] = !empty($temp_prev) ? (array_shift($temp_prev) ?? 0) : 0;
+            }
+        }
+
         return rest_ensure_response([
             'success' => true,
             'data' => [
@@ -353,7 +436,12 @@ class Nexus_Stats_REST {
                 'total_visitors' => ($totals && $totals->total_visitors) ? (int)$totals->total_visitors : 0,
                 'chart_labels'   => $chart_labels,
                 'chart_values'   => $chart_values,
+                'chart_values_prev' => $chart_values_prev,
                 'device_stats'   => $devices,
+                'sources'        => $sources,
+                'referrers'      => $referrers,
+                'countries'      => $countries,
+                'languages'      => $languages,
                 'top_posts'      => self::get_top_content('post', $start_date, $end_date),
                 'top_pages'      => self::get_top_content('page', $start_date, $end_date),
                 'annotations'    => $annotations,
@@ -377,14 +465,39 @@ class Nexus_Stats_REST {
             LIMIT 5
         ", $post_type, $start_date, $end_date));
 
+        // Content Health Score Logic (Recent half vs Older half of the timeframe)
+        $diff = strtotime($end_date) - strtotime($start_date);
+        $mid_date = date('Y-m-d H:i:s', strtotime($start_date) + ($diff / 2));
+
         $output = [];
         if ($results) {
             foreach ($results as $row) {
+                // Get older half views
+                $older_views = (int) $wpdb->get_var($wpdb->prepare("
+                    SELECT COUNT(id) FROM $table_name
+                    WHERE post_id = %d AND view_datetime >= %s AND view_datetime < %s
+                ", $row->ID, $start_date, $mid_date));
+
+                // Get recent half views
+                $recent_views = (int) $wpdb->get_var($wpdb->prepare("
+                    SELECT COUNT(id) FROM $table_name
+                    WHERE post_id = %d AND view_datetime >= %s AND view_datetime <= %s
+                ", $row->ID, $mid_date, $end_date));
+
+                // Calculate Health Score
+                $health = 'stable';
+                if ($older_views > 0) {
+                    $change = ($recent_views - $older_views) / $older_views;
+                    if ($change >= 0.1) $health = 'evergreen'; // Growing
+                    elseif ($change <= -0.2) $health = 'dying'; // Dropping > 20%
+                }
+
                 $output[] = [
                     'id' => $row->ID,
                     'title' => wp_trim_words($row->post_title, 6, '...'),
                     'views' => $row->views,
                     'avg_read_time' => round((float)$row->avg_read_time),
+                    'health' => $health,
                     'edit_link' => get_edit_post_link($row->ID, 'raw'),
                     'permalink' => get_permalink($row->ID)
                 ];

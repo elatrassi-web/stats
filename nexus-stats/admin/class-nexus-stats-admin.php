@@ -23,6 +23,9 @@ class Nexus_Stats_Admin {
 
         // Dashboard widget
         add_action('wp_dashboard_setup', [__CLASS__, 'add_dashboard_widget']);
+
+        // Client-Ready Presentation Mode (Shared URL)
+        add_action('init', [__CLASS__, 'handle_shared_dashboard']);
     }
 
     public static function add_admin_menu() {
@@ -39,7 +42,10 @@ class Nexus_Stats_Admin {
         wp_enqueue_script('html2pdf-js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
 
         if ($hook == 'toplevel_page_nexus-stats-stats') {
-            wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js'], NEXUS_STATS_VIEWS_VERSION, true);
+            wp_enqueue_style('jsvectormap-css', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css', [], null);
+            wp_enqueue_script('jsvectormap-js', 'https://cdn.jsdelivr.net/npm/jsvectormap', [], null, true);
+            wp_enqueue_script('jsvectormap-world', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js', ['jsvectormap-js'], null, true);
+            wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js', 'jsvectormap-js', 'jsvectormap-world'], NEXUS_STATS_VIEWS_VERSION, true);
 
             $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
             $theme = get_option('nexus_stats_theme', 'dark');
@@ -77,6 +83,11 @@ class Nexus_Stats_Admin {
         register_setting('nexus_stats_settings_group', 'nexus_stats_gdpr_strict', [
             'type' => 'string',
             'default' => 'no',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_share_token', [
+            'type' => 'string',
+            'default' => '',
             'sanitize_callback' => 'sanitize_text_field'
         ]);
     }
@@ -189,6 +200,55 @@ class Nexus_Stats_Admin {
         <?php
     }
 
+    // --- Client-Ready Shared Dashboard ---
+    public static function handle_shared_dashboard() {
+        if (isset($_GET['nexus_stats_share'])) {
+            $token = sanitize_text_field($_GET['nexus_stats_share']);
+            $saved_token = get_option('nexus_stats_share_token', '');
+
+            if (!empty($saved_token) && $token === $saved_token) {
+                // Generate a temporary nonce for the REST API for this shared view
+                // Since this user isn't logged in, they normally couldn't hit the admin endpoints.
+                // We'll bypass the REST permission check if they send this specific token as a header.
+                // However, the cleanest way without altering the REST API class is to temporarily set the current user to an admin
+                // OR modify the REST class to accept the token. For security, we'll modify the REST class check.
+
+                // Load dependencies
+                wp_enqueue_style('nexus-stats-admin-css', NEXUS_STATS_VIEWS_URL . 'assets/css/nexus-stats-admin.css', [], NEXUS_STATS_VIEWS_VERSION);
+                wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
+                wp_enqueue_script('chartjs-plugin-annotation', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js', ['chart-js'], null, true);
+                wp_enqueue_script('html2pdf-js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
+                wp_enqueue_style('jsvectormap-css', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css', [], null);
+                wp_enqueue_script('jsvectormap-js', 'https://cdn.jsdelivr.net/npm/jsvectormap', [], null, true);
+                wp_enqueue_script('jsvectormap-world', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js', ['jsvectormap-js'], null, true);
+                wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js', 'jsvectormap-js', 'jsvectormap-world'], NEXUS_STATS_VIEWS_VERSION, true);
+
+                $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
+                $theme = get_option('nexus_stats_theme', 'dark');
+
+                wp_localize_script('nexus-stats-admin-js', 'nexusStatsAdminData', [
+                    'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
+                    'nonce' => wp_create_nonce('wp_rest'),
+                    'shareToken' => $token, // Pass token to JS so it can send it in headers
+                    'refreshRate' => (int)$refresh_rate * 1000,
+                    'theme' => sanitize_text_field($theme)
+                ]);
+
+                // Render standalone page
+                echo '<!DOCTYPE html><html><head><title>Rapport Stats</title>';
+                wp_head(); // Print enqueued scripts/styles
+                echo '<style>body { margin:0; padding:20px; background: ' . ($theme === 'dark' ? '#121212' : '#f5f7fa') . ';} .nexus-stats-wrap { margin:0!important; }</style>';
+                echo '</head><body>';
+                require_once NEXUS_STATS_VIEWS_DIR . 'admin/views/dashboard.php';
+                wp_footer();
+                echo '</body></html>';
+                exit;
+            } else {
+                wp_die("Lien expiré ou invalide.", "Accès Refusé", ['response' => 403]);
+            }
+        }
+    }
+
     // --- Pages d'admin ---
     public static function render_admin_page() {
         // Inclus le HTML du tableau de bord
@@ -247,6 +307,15 @@ class Nexus_Stats_Admin {
                         <td>
                             <input type="number" name="nexus_stats_monthly_goal" value="<?php echo esc_attr(get_option('nexus_stats_monthly_goal', 10000)); ?>" class="regular-text" />
                             <p class="description">Fixez un objectif pour activer la jauge de progression dans le tableau de bord (Gamification).</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Lien de Partage (Client-Ready)</th>
+                        <td>
+                            <input type="text" name="nexus_stats_share_token" value="<?php echo esc_attr(get_option('nexus_stats_share_token', '')); ?>" class="regular-text" />
+                            <p class="description">Générez un mot de passe ou jeton ici (ex: "client2026"). Le tableau de bord sera visible sans être connecté à l'adresse :<br>
+                            <code><?php echo site_url('/?nexus_stats_share=VOTRE_JETON'); ?></code>
+                            </p>
                         </td>
                     </tr>
                 </table>

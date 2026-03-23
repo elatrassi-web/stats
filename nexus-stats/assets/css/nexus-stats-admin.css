@@ -223,14 +223,70 @@
     grid-row: span 2;
 }
 
-/* Graphique par appareil */
-.nexus-stats-device-card {
+/* Graphiques donut */
+.nexus-stats-device-card,
+.nexus-stats-sources-card {
     grid-column: span 4;
+}
+
+/* Geolocation Map */
+.nexus-stats-geo-card {
+    grid-column: span 12;
+}
+.nexus-stats-world-map {
+    width: 100%;
+    height: 300px;
+    background: var(--nexus-stats-badge-bg);
 }
 
 /* Listes Top Articles/Pages */
 .nexus-stats-list-card {
     grid-column: span 6;
+}
+
+/* Switch Toggle CSS */
+.nexus-stats-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.nexus-stats-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.nexus-stats-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--nexus-stats-badge-bg);
+  transition: .4s;
+  border-radius: 20px;
+  border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--nexus-stats-text-muted);
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .nexus-stats-slider {
+  background-color: var(--nexus-stats-emerald);
+}
+
+input:checked + .nexus-stats-slider:before {
+  transform: translateX(16px);
+  background-color: #fff;
 }
 
 /* Responsive */
@@ -455,12 +511,25 @@
     border-color: transparent;
 }
 
+.nexus-stats-badge.red {
+    background: rgba(255, 0, 85, 0.1);
+    color: #ff0055;
+    border-color: transparent;
+}
+
 .nexus-stats-read-time {
     font-size: 11px;
     color: var(--nexus-stats-text-muted);
     display: flex;
     align-items: center;
     gap: 4px;
+}
+
+.nexus-stats-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
 }
 
 /* Colonnes Admin WP Natives */

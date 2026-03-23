@@ -26,6 +26,13 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
                     <option value="last_month">Mois Précédent</option>
                     <option value="custom">Période personnalisée...</option>
                 </select>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <label class="nexus-stats-switch" title="Comparer avec la période précédente">
+                        <input type="checkbox" id="nexus_stats_compare_toggle">
+                        <span class="nexus-stats-slider"></span>
+                    </label>
+                    <span style="font-size: 12px; font-weight: 600; color: var(--nexus-stats-text-muted);">Vs Précédent</span>
+                </div>
             </div>
         </div>
 
@@ -104,6 +111,53 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
                 </div>
                 <div class="nexus-stats-card-body chart-wrapper doughnut-wrapper">
                     <canvas id="nexusStatsDeviceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Traffic Sources (Donut) -->
+            <div class="nexus-stats-card nexus-stats-sources-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-networking"></span> Origine du Trafic
+                </div>
+                <div class="nexus-stats-card-body chart-wrapper doughnut-wrapper">
+                    <canvas id="nexusStatsSourcesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Geolocation (World Map & List) -->
+            <div class="nexus-stats-card nexus-stats-geo-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-admin-site-alt3"></span> Géolocalisation
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <div id="nexus_stats_world_map" class="nexus-stats-world-map"></div>
+                    <ul class="nexus-stats-list" id="nexus_stats_top_countries">
+                        <li class="nexus-stats-list-item empty">Chargement...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Top Referrers -->
+            <div class="nexus-stats-card nexus-stats-list-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-external"></span> Sites Référents & Engagement
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <ul class="nexus-stats-list" id="nexus_stats_top_referrers">
+                        <li class="nexus-stats-list-item empty">Chargement...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Top Languages -->
+            <div class="nexus-stats-card nexus-stats-list-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-translation"></span> Langues des Navigateurs
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <ul class="nexus-stats-list" id="nexus_stats_top_languages">
+                        <li class="nexus-stats-list-item empty">Chargement...</li>
+                    </ul>
                 </div>
             </div>
 

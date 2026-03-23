@@ -12,12 +12,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const mainCtx = mainCanvas.getContext('2d');
     const deviceCtx = deviceCanvas ? deviceCanvas.getContext('2d') : null;
+    const sourcesCanvas = document.getElementById('nexusStatsSourcesChart');
+    const sourcesCtx = sourcesCanvas ? sourcesCanvas.getContext('2d') : null;
 
     let mainChart = null;
     let deviceChart = null;
+    let sourcesChart = null;
+    let worldMap = null;
     let currentChartType = 'line'; // Par défaut
 
     const filterSelect = document.getElementById('nexus_stats_time_filter');
+    const compareToggle = document.getElementById('nexus_stats_compare_toggle');
     const switcherBtns = document.querySelectorAll('.switcher-btn');
 
     // Nouveaux éléments pour Custom Dates & Theme
@@ -27,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnApplyDates = document.getElementById('nexus_stats_apply_dates');
     const btnThemeToggle = document.getElementById('nexus_stats_theme_toggle');
     const wrapContainer = document.querySelector('.nexus-stats-wrap');
+    const shareToken = nexusStatsAdminData.shareToken || '';
 
     // Nouveaux boutons pour les fonctionnalités 2026
     const btnExportPdf = document.getElementById('nexus_stats_export_pdf');
@@ -58,6 +64,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
     updateChartColors(); // Init
 
+    // Data Saver Mode (Slow connection logic)
+    const isSlowConnection = navigator.connection &&
+                             (navigator.connection.effectiveType === '2g' ||
+                              navigator.connection.effectiveType === 'slow-2g');
+
+    if (isSlowConnection) {
+        console.log("Nexus Stats: Mode Économie de Données activé (Connexion lente détectée).");
+        // We'll hide canvas containers and just show numbers
+        document.querySelectorAll('.chart-wrapper').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.nexus-stats-world-map').forEach(el => el.style.display = 'none');
+    }
+
     // Fonction de formatage (1 000 au lieu de 1000)
     const formatNumber = (num) => {
         return num.toLocaleString('fr-FR');
@@ -86,12 +104,21 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
+        if (compareToggle && compareToggle.checked) {
+            endpoint += `&compare=true`;
+        }
+
+        const headers = {
+            'X-WP-Nonce': nonce,
+            'Content-Type': 'application/json'
+        };
+        if (shareToken) {
+            headers['X-Nexus-Stats-Share'] = shareToken;
+        }
+
         fetch(endpoint, {
             method: 'GET',
-            headers: {
-                'X-WP-Nonce': nonce,
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         })
         .then(response => response.json())
         .then(res => {
@@ -105,26 +132,43 @@ document.addEventListener("DOMContentLoaded", function() {
                 // --- Graphique Principal (Évolution / Barres) ---
                 if (mainChart) mainChart.destroy();
 
+                let datasets = [{
+                    label: 'Vues',
+                    data: data.chart_values,
+                    backgroundColor: currentChartType === 'line' ? emeraldColorBg : emeraldColor,
+                    borderColor: emeraldColor,
+                    borderWidth: 2,
+                    fill: currentChartType === 'line', // Remplir sous la ligne
+                    tension: 0.4, // Courbe douce
+                    borderRadius: currentChartType === 'bar' ? 4 : 0,
+                    pointBackgroundColor: pointColor,
+                    pointBorderColor: emeraldColor,
+                    pointHoverBackgroundColor: emeraldColor,
+                    pointHoverBorderColor: pointColor,
+                    pointRadius: currentChartType === 'line' ? 3 : 0,
+                    pointHoverRadius: 6
+                }];
+
+                if (data.chart_values_prev && data.chart_values_prev.length > 0) {
+                    datasets.push({
+                        label: 'Vues (Précédent)',
+                        data: data.chart_values_prev,
+                        backgroundColor: 'transparent',
+                        borderColor: 'rgba(0, 136, 255, 0.5)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    });
+                }
+
                 const mainChartConfig = {
                     type: currentChartType,
                     data: {
                         labels: data.chart_labels,
-                        datasets: [{
-                            label: 'Vues',
-                            data: data.chart_values,
-                            backgroundColor: currentChartType === 'line' ? emeraldColorBg : emeraldColor,
-                            borderColor: emeraldColor,
-                            borderWidth: 2,
-                            fill: currentChartType === 'line', // Remplir sous la ligne
-                            tension: 0.4, // Courbe douce
-                            borderRadius: currentChartType === 'bar' ? 4 : 0,
-                            pointBackgroundColor: pointColor,
-                            pointBorderColor: emeraldColor,
-                            pointHoverBackgroundColor: emeraldColor,
-                            pointHoverBorderColor: pointColor,
-                            pointRadius: currentChartType === 'line' ? 3 : 0,
-                            pointHoverRadius: 6
-                        }]
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
@@ -198,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (goalBar) goalBar.style.width = `${percent}%`;
 
                 // --- Graphique Appareils (Mobile vs Desktop) ---
-                if (deviceCtx) {
+                if (deviceCtx && !isSlowConnection) {
                     if (deviceChart) deviceChart.destroy();
 
                     const mobileCount = data.device_stats.mobile || 0;
@@ -238,29 +282,143 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 }
 
+                // --- Sources de Trafic (Donut) ---
+                if (sourcesCtx && !isSlowConnection) {
+                    if (sourcesChart) sourcesChart.destroy();
+
+                    let labels = [];
+                    let vals = [];
+                    let bgColors = [];
+                    const colorsMap = { 'search': '#00ff88', 'social': '#0088ff', 'direct': '#ffaa00', 'private': '#ff0055', 'referral': '#a0a0a0', 'internal': '#555555' };
+
+                    if (data.sources && data.sources.length > 0) {
+                        data.sources.forEach(s => {
+                            labels.push(s.referrer_type.toUpperCase());
+                            vals.push(s.count);
+                            bgColors.push(colorsMap[s.referrer_type] || '#fff');
+                        });
+                    } else {
+                        labels = ['Aucune donnée']; vals = [1]; bgColors = [gridColor];
+                    }
+
+                    sourcesChart = new Chart(sourcesCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: vals,
+                                backgroundColor: bgColors,
+                                hoverOffset: 4,
+                                borderWidth: 0,
+                                cutout: '75%'
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+                        }
+                    });
+                }
+
+                // --- Géolocalisation (Map) ---
+                const mapEl = document.getElementById('nexus_stats_world_map');
+                if (mapEl && !isSlowConnection && window.jsVectorMap) {
+                    if (worldMap) {
+                        worldMap.destroy();
+                        mapEl.innerHTML = '';
+                    }
+
+                    let mapData = {};
+                    if (data.countries) {
+                        data.countries.forEach(c => {
+                            if (c.country_code !== 'XX') {
+                                mapData[c.country_code] = c.count;
+                            }
+                        });
+                    }
+
+                    worldMap = new jsVectorMap({
+                        selector: "#nexus_stats_world_map",
+                        map: "world",
+                        backgroundColor: "transparent",
+                        regionStyle: {
+                            initial: { fill: gridColor },
+                            hover: { fill: emeraldColor }
+                        },
+                        visualizeData: {
+                            scale: [emeraldColorBg, emeraldColor],
+                            values: mapData
+                        },
+                        onRegionTooltipShow(event, tooltip, code) {
+                            if (mapData[code]) {
+                                tooltip.text(tooltip.text() + ` (${mapData[code]} vues)`);
+                            }
+                        }
+                    });
+                }
+
                 // --- Listes Top Contenus ---
-                const createListHtml = (items) => {
+                const createListHtml = (items, type) => {
                     if (!items || items.length === 0) return '<li class="nexus-stats-list-item empty">Aucune donnée pour cette période.</li>';
                     let html = '';
                     items.forEach(function(item) {
-                        html += `
-                        <li class="nexus-stats-list-item">
-                            <a href="${item.edit_link}" class="nexus-stats-list-link" target="_blank" title="Modifier ${item.title}">${item.title}</a>
-                            <div class="nexus-stats-list-meta">
-                                <span class="nexus-stats-read-time" title="Temps de lecture moyen">
-                                    <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_read_time)}
-                                </span>
-                                <span class="nexus-stats-badge emerald" title="Vues Totales">
-                                    ${formatNumber(item.views)}
-                                </span>
-                            </div>
-                        </li>`;
+                        if (type === 'post') {
+                            let healthBadge = '';
+                            if (item.health === 'evergreen') healthBadge = '<span class="nexus-stats-badge emerald" style="margin-right:8px;" title="Evergreen (Stable/Croissant)">↗</span>';
+                            else if (item.health === 'dying') healthBadge = '<span class="nexus-stats-badge red" style="margin-right:8px;" title="Mourant (En baisse)">↘</span>';
+
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <a href="${item.edit_link}" class="nexus-stats-list-link" target="_blank" title="Modifier ${item.title}">${healthBadge}${item.title}</a>
+                                <div class="nexus-stats-list-meta">
+                                    <span class="nexus-stats-read-time" title="Temps de lecture moyen">
+                                        <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_read_time)}
+                                    </span>
+                                    <span class="nexus-stats-badge emerald" title="Vues Totales">
+                                        ${formatNumber(item.views)}
+                                    </span>
+                                </div>
+                            </li>`;
+                        } else if (type === 'referrer') {
+                            const domain = item.referrer_domain || 'Direct/Privé';
+                            // Astuce: utiliser un service de favicon tierce
+                            const favicon = domain !== 'Direct/Privé' ? `<img src="https://www.google.com/s2/favicons?domain=${domain}" class="nexus-stats-favicon" onerror="this.style.display='none'">` : '<span class="dashicons dashicons-admin-links nexus-stats-favicon"></span>';
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <span class="nexus-stats-list-link">${favicon}${domain}</span>
+                                <div class="nexus-stats-list-meta">
+                                    <span class="nexus-stats-read-time" title="Temps de lecture moyen généré par cette source">
+                                        <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_time)}
+                                    </span>
+                                    <span class="nexus-stats-badge emerald" title="Vues apportées">
+                                        ${formatNumber(item.count)}
+                                    </span>
+                                </div>
+                            </li>`;
+                        } else if (type === 'country') {
+                            // Trick to convert ISO code to flag emoji
+                            const flag = item.country_code !== 'XX' ? item.country_code.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397)) : '🌍';
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <span class="nexus-stats-list-link">${flag} ${item.country_code}</span>
+                                <span class="nexus-stats-badge emerald">${formatNumber(item.count)}</span>
+                            </li>`;
+                        } else if (type === 'lang') {
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <span class="nexus-stats-list-link" style="text-transform:uppercase;">${item.browser_lang}</span>
+                                <span class="nexus-stats-badge emerald">${formatNumber(item.count)}</span>
+                            </li>`;
+                        }
                     });
                     return html;
                 };
 
-                document.getElementById('nexus_stats_top_posts').innerHTML = createListHtml(data.top_posts);
-                document.getElementById('nexus_stats_top_pages').innerHTML = createListHtml(data.top_pages);
+                document.getElementById('nexus_stats_top_posts').innerHTML = createListHtml(data.top_posts, 'post');
+                document.getElementById('nexus_stats_top_pages').innerHTML = createListHtml(data.top_pages, 'post');
+                if (document.getElementById('nexus_stats_top_referrers')) document.getElementById('nexus_stats_top_referrers').innerHTML = createListHtml(data.referrers, 'referrer');
+                if (document.getElementById('nexus_stats_top_countries')) document.getElementById('nexus_stats_top_countries').innerHTML = createListHtml(data.countries, 'country');
+                if (document.getElementById('nexus_stats_top_languages')) document.getElementById('nexus_stats_top_languages').innerHTML = createListHtml(data.languages, 'lang');
             }
         })
         .catch(err => console.error("Erreur chargement Dashboard Nexus Stats:", err));
@@ -268,9 +426,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // 2. Mettre à jour UNIQUEMENT le compteur "En Direct"
     function fetchLiveCount() {
+        const headers = { 'X-WP-Nonce': nonce };
+        if (shareToken) {
+            headers['X-Nexus-Stats-Share'] = shareToken;
+        }
+
         fetch(`${restUrl}/stats/live`, {
             method: 'GET',
-            headers: { 'X-WP-Nonce': nonce }
+            headers: headers
         })
         .then(response => response.json())
         .then(res => {
@@ -308,6 +471,11 @@ document.addEventListener("DOMContentLoaded", function() {
     // Appliquer dates personnalisées
     if (btnApplyDates) {
         btnApplyDates.addEventListener('click', loadDashboardData);
+    }
+
+    // Switch de Comparaison
+    if (compareToggle) {
+        compareToggle.addEventListener('change', loadDashboardData);
     }
 
     // Ajouter Annotation

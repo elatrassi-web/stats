@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
             sendPostRequest('/track', {
                 post_id: postID,
                 visitor_id: vid,
-                device: device
+                device: device,
+                referrer: document.referrer || ''
             });
         }
     }
