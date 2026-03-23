@@ -129,7 +129,7 @@ class Nexus_Stats_Admin {
 
         $args = array(
             'id'    => 'nexus_stats_live_stats',
-            'title' => '<span class="ab-icon dashicons dashicons-chart-line"></span><span class="ab-label" style="color:#00ff88;font-weight:bold;"><span class="live-dot-mini" style="display:inline-block;width:6px;height:6px;background:#00ff88;border-radius:50%;margin-right:4px;animation:pulse-green 2s infinite;"></span>' . $live_count . ' Live</span>',
+            'title' => '<span class="ab-icon dashicons dashicons-chart-line"></span><span class="ab-label" style="color:#00ff88;font-weight:bold;"><span class="live-dot-mini" style="display:inline-block;width:6px;height:6px;background:#00ff88;border-radius:50%;margin-right:4px;animation:pulse-green 2s infinite;"></span><span id="nexus_stats_topbar_live_count">' . $live_count . '</span> Live</span>',
             'href'  => admin_url('admin.php?page=nexus-stats-stats'),
             'meta'  => array(
                 'class' => 'nexus-stats-admin-bar-node',

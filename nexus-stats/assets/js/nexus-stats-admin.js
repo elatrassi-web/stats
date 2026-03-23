@@ -438,6 +438,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.json())
         .then(res => {
             if (res.success) {
+                // Update Dashboard Highlight
                 const liveEl = document.getElementById('highlight-live');
                 if (liveEl) {
                     // Animation simple si le chiffre change
@@ -448,6 +449,12 @@ document.addEventListener("DOMContentLoaded", function() {
                             liveEl.style.opacity = 1;
                         }, 150);
                     }
+                }
+
+                // Update Top Admin Bar immediately so they are perfectly in sync
+                const topBarLiveEl = document.getElementById('nexus_stats_topbar_live_count');
+                if (topBarLiveEl) {
+                    topBarLiveEl.innerText = res.data;
                 }
             }
         });
