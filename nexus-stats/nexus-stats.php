@@ -23,6 +23,7 @@ require_once NEXUS_STATS_VIEWS_DIR . 'public/class-nexus-stats-public.php';
 
 // Initialisation
 function nexus_stats_views_init() {
+    load_plugin_textdomain('nexus-stats-views', false, dirname(plugin_basename(__FILE__)) . '/languages');
     Nexus_Stats_DB::init();
     Nexus_Stats_REST::init();
     Nexus_Stats_Admin::init();

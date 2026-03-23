@@ -33,7 +33,11 @@ class Nexus_Stats_Public {
                 wp_localize_script('nexus-stats-heatmap-js', 'nexusStatsHeatmapData', [
                     'postID' => $post->ID,
                     'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
-                    'nonce' => wp_create_nonce('wp_rest')
+                    'nonce' => wp_create_nonce('wp_rest'),
+                    'i18n' => [
+                        'clicks' => __('clics', 'nexus-stats-views'),
+                        'clicks_on_element' => __('Nexus Stats: %s clics sur cet élément', 'nexus-stats-views')
+                    ]
                 ]);
                 wp_enqueue_script('nexus-stats-heatmap-js');
             }

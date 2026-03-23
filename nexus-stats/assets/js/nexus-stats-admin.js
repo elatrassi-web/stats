@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnThemeToggle = document.getElementById('nexus_stats_theme_toggle');
     const wrapContainer = document.querySelector('.nexus-stats-wrap');
     const shareToken = nexusStatsAdminData.shareToken || '';
+    const i18n = nexusStatsAdminData.i18n || {};
 
     // Nouveaux boutons pour les fonctionnalités 2026
     const btnExportPdf = document.getElementById('nexus_stats_export_pdf');
@@ -133,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (mainChart) mainChart.destroy();
 
                 let datasets = [{
-                    label: 'Vues',
+                    label: i18n.views || 'Vues',
                     data: data.chart_values,
                     backgroundColor: currentChartType === 'line' ? emeraldColorBg : emeraldColor,
                     borderColor: emeraldColor,
@@ -151,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 if (data.chart_values_prev && data.chart_values_prev.length > 0) {
                     datasets.push({
-                        label: 'Vues (Précédent)',
+                        label: i18n.prev_views || 'Vues (Précédent)',
                         data: data.chart_values_prev,
                         backgroundColor: 'transparent',
                         borderColor: 'rgba(0, 136, 255, 0.5)',
@@ -252,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     deviceChart = new Chart(deviceCtx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Mobile', 'Desktop'],
+                            labels: [i18n.mobile || 'Mobile', i18n.desktop || 'Desktop'],
                             datasets: [{
                                 data: hasDeviceData ? [mobileCount, desktopCount] : [1, 1], // Fake data si vide pour montrer l'anneau
                                 backgroundColor: hasDeviceData ? [isDark ? '#0088ff' : '#2271b1', emeraldColor] : [gridColor, gridColor],
@@ -298,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             bgColors.push(colorsMap[s.referrer_type] || '#fff');
                         });
                     } else {
-                        labels = ['Aucune donnée']; vals = [1]; bgColors = [gridColor];
+                        labels = [i18n.no_data || 'Aucune donnée']; vals = [1]; bgColors = [gridColor];
                     }
 
                     sourcesChart = new Chart(sourcesCtx, {
@@ -351,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         },
                         onRegionTooltipShow(event, tooltip, code) {
                             if (mapData[code]) {
-                                tooltip.text(tooltip.text() + ` (${mapData[code]} vues)`);
+                                tooltip.text(tooltip.text() + ` (${mapData[code]} ${i18n.views || 'vues'})`);
                             }
                         }
                     });
@@ -359,22 +360,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // --- Listes Top Contenus ---
                 const createListHtml = (items, type) => {
-                    if (!items || items.length === 0) return '<li class="nexus-stats-list-item empty">Aucune donnée pour cette période.</li>';
+                    if (!items || items.length === 0) return `<li class="nexus-stats-list-item empty">${i18n.empty_period || 'Aucune donnée pour cette période.'}</li>`;
                     let html = '';
                     items.forEach(function(item) {
                         if (type === 'post') {
                             let healthBadge = '';
-                            if (item.health === 'evergreen') healthBadge = '<span class="nexus-stats-badge emerald" style="margin-right:8px;" title="Evergreen (Stable/Croissant)">↗</span>';
-                            else if (item.health === 'dying') healthBadge = '<span class="nexus-stats-badge red" style="margin-right:8px;" title="Mourant (En baisse)">↘</span>';
+                            const titleEv = i18n.evergreen_title || 'Evergreen (Stable/Croissant)';
+                            const titleDy = i18n.dying_title || 'Mourant (En baisse)';
+                            const totalViewsTitle = i18n.total_views || 'Vues Totales';
+                            const avgReadTitle = i18n.avg_read_time || 'Temps de lecture moyen';
+
+                            if (item.health === 'evergreen') healthBadge = `<span class="nexus-stats-badge emerald" style="margin-right:8px;" title="${titleEv}">↗</span>`;
+                            else if (item.health === 'dying') healthBadge = `<span class="nexus-stats-badge red" style="margin-right:8px;" title="${titleDy}">↘</span>`;
 
                             html += `
                             <li class="nexus-stats-list-item">
                                 <a href="${item.edit_link}" class="nexus-stats-list-link" target="_blank" title="Modifier ${item.title}">${healthBadge}${item.title}</a>
                                 <div class="nexus-stats-list-meta">
-                                    <span class="nexus-stats-read-time" title="Temps de lecture moyen">
+                                    <span class="nexus-stats-read-time" title="${avgReadTitle}">
                                         <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_read_time)}
                                     </span>
-                                    <span class="nexus-stats-badge emerald" title="Vues Totales">
+                                    <span class="nexus-stats-badge emerald" title="${totalViewsTitle}">
                                         ${formatNumber(item.views)}
                                     </span>
                                 </div>
@@ -383,14 +389,17 @@ document.addEventListener("DOMContentLoaded", function() {
                             const domain = item.referrer_domain || 'Direct/Privé';
                             // Astuce: utiliser un service de favicon tierce
                             const favicon = domain !== 'Direct/Privé' ? `<img src="https://www.google.com/s2/favicons?domain=${domain}" class="nexus-stats-favicon" onerror="this.style.display='none'">` : '<span class="dashicons dashicons-admin-links nexus-stats-favicon"></span>';
+                            const avgSourceTime = i18n.avg_source_time || 'Temps de lecture moyen généré par cette source';
+                            const viewsBrought = i18n.views_brought || 'Vues apportées';
+
                             html += `
                             <li class="nexus-stats-list-item">
                                 <span class="nexus-stats-list-link">${favicon}${domain}</span>
                                 <div class="nexus-stats-list-meta">
-                                    <span class="nexus-stats-read-time" title="Temps de lecture moyen généré par cette source">
+                                    <span class="nexus-stats-read-time" title="${avgSourceTime}">
                                         <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_time)}
                                     </span>
-                                    <span class="nexus-stats-badge emerald" title="Vues apportées">
+                                    <span class="nexus-stats-badge emerald" title="${viewsBrought}">
                                         ${formatNumber(item.count)}
                                     </span>
                                 </div>
@@ -504,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 });
             } else {
-                alert("Veuillez remplir la date et le texte.");
+                alert(i18n.fill_date_text || "Veuillez remplir la date et le texte.");
             }
         });
     }
@@ -516,7 +525,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const element = document.getElementById('nexus_stats_pdf_area');
             const opt = {
                 margin:       10,
-                filename:     'Rapport_Nexus_Stats.pdf',
+                filename:     i18n.pdf_name || 'Rapport_Nexus_Stats.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, backgroundColor: isDark ? '#121212' : '#f5f7fa' },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
@@ -530,13 +539,15 @@ document.addEventListener("DOMContentLoaded", function() {
     if (btnCleanupGhosts) {
         btnCleanupGhosts.addEventListener('click', function(e) {
             e.preventDefault();
-            if(confirm("Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?")) {
+            const confirmMsg = i18n.confirm_ghost || "Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?";
+            if(confirm(confirmMsg)) {
                 fetch(`${restUrl}/cleanup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce }
                 }).then(res => res.json()).then(res => {
                     if (res.success) {
-                        alert(`Nettoyage terminé : ${res.deleted} vues fantômes supprimées.`);
+                        const cleanMsg = (i18n.cleanup_done || "Nettoyage terminé : %s vues fantômes supprimées.").replace('%s', res.deleted);
+                        alert(cleanMsg);
                         loadDashboardData();
                     }
                 });

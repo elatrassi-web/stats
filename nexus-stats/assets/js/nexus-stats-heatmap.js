@@ -83,8 +83,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const badge = document.createElement('div');
                     badge.className = 'nexus-stats-heatmap-badge';
-                    badge.innerText = count + ' clics';
-                    badge.title = 'Nexus Stats: ' + count + ' clics sur cet élément';
+                    const i18n = data.i18n || {};
+                    const clicksText = i18n.clicks || 'clics';
+                    const clicksTitle = (i18n.clicks_on_element || 'Nexus Stats: %s clics sur cet élément').replace('%s', count);
+
+                    badge.innerText = count + ' ' + clicksText;
+                    badge.title = clicksTitle;
 
                     el.appendChild(badge);
                 }

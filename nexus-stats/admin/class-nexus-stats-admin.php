@@ -54,7 +54,25 @@ class Nexus_Stats_Admin {
                 'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'refreshRate' => (int)$refresh_rate * 1000,
-                'theme' => sanitize_text_field($theme)
+                'theme' => sanitize_text_field($theme),
+                'i18n' => [
+                    'views' => __('Vues', 'nexus-stats-views'),
+                    'prev_views' => __('Vues (Précédent)', 'nexus-stats-views'),
+                    'mobile' => __('Mobile', 'nexus-stats-views'),
+                    'desktop' => __('Desktop', 'nexus-stats-views'),
+                    'no_data' => __('Aucune donnée', 'nexus-stats-views'),
+                    'empty_period' => __('Aucune donnée pour cette période.', 'nexus-stats-views'),
+                    'evergreen_title' => __('Evergreen (Stable/Croissant)', 'nexus-stats-views'),
+                    'dying_title' => __('Mourant (En baisse)', 'nexus-stats-views'),
+                    'total_views' => __('Vues Totales', 'nexus-stats-views'),
+                    'avg_read_time' => __('Temps de lecture moyen', 'nexus-stats-views'),
+                    'avg_source_time' => __('Temps de lecture moyen généré par cette source', 'nexus-stats-views'),
+                    'views_brought' => __('Vues apportées', 'nexus-stats-views'),
+                    'fill_date_text' => __('Veuillez remplir la date et le texte.', 'nexus-stats-views'),
+                    'pdf_name' => __('Rapport_Nexus_Stats.pdf', 'nexus-stats-views'),
+                    'confirm_ghost' => __('Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?', 'nexus-stats-views'),
+                    'cleanup_done' => __('Nettoyage terminé : %s vues fantômes supprimées.', 'nexus-stats-views'),
+                ]
             ]);
         }
     }
