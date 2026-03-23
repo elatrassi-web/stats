@@ -1,0 +1,332 @@
+/* ==========================================================================
+ * Variables CSS (Thème Dark par défaut - Accents Émeraude & Bleu Électrique)
+ * ========================================================================== */
+ :root {
+    --my-angers-bg: #121212;
+    --my-angers-card-bg: rgba(26, 26, 26, 0.7); /* Glassmorphism Base */
+    --my-angers-card-border: rgba(255, 255, 255, 0.08);
+    --my-angers-text-main: #f0f0f0;
+    --my-angers-text-muted: #a0a0a0;
+
+    --my-angers-emerald: #00ff88;
+    --my-angers-emerald-glow: rgba(0, 255, 136, 0.3);
+    --my-angers-blue: #0088ff;
+
+    --my-angers-radius: 16px;
+    --my-angers-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ==========================================================================
+ * Structure Principale
+ * ========================================================================== */
+.my-angers-wrap {
+    margin: 20px 20px 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: var(--my-angers-text-main);
+    background: var(--my-angers-bg);
+    border-radius: var(--my-angers-radius);
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.my-angers-wrap * {
+    box-sizing: border-box;
+}
+
+.my-angers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--my-angers-card-border);
+}
+
+.my-angers-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--my-angers-text-main);
+    letter-spacing: -0.5px;
+}
+
+/* ==========================================================================
+ * Composants & Formulaires
+ * ========================================================================== */
+.my-angers-select {
+    background: var(--my-angers-card-bg);
+    color: var(--my-angers-text-main);
+    border: 1px solid var(--my-angers-card-border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: var(--my-angers-transition);
+}
+
+.my-angers-select:hover, .my-angers-select:focus {
+    border-color: var(--my-angers-emerald);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--my-angers-emerald-glow);
+}
+
+.my-angers-select option {
+    background: var(--my-angers-bg);
+    color: var(--my-angers-text-main);
+}
+
+/* ==========================================================================
+ * Bento Grid Layout
+ * ========================================================================== */
+.my-angers-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-gap: 24px;
+    grid-auto-flow: dense;
+}
+
+/* Les métriques en haut */
+.my-angers-metric-card {
+    grid-column: span 4;
+}
+
+/* Le graphique principal prend plus de place */
+.my-angers-chart-card {
+    grid-column: span 8;
+    grid-row: span 2;
+}
+
+/* Graphique par appareil */
+.my-angers-device-card {
+    grid-column: span 4;
+}
+
+/* Listes Top Articles/Pages */
+.my-angers-list-card {
+    grid-column: span 6;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .my-angers-metric-card { grid-column: span 6; }
+    .my-angers-live-card { grid-column: span 12; }
+    .my-angers-chart-card { grid-column: span 12; }
+    .my-angers-device-card { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+    .my-angers-metric-card,
+    .my-angers-list-card { grid-column: span 12; }
+}
+
+/* ==========================================================================
+ * Cards (Glassmorphism)
+ * ========================================================================== */
+.my-angers-card {
+    background: var(--my-angers-card-bg);
+    border: 1px solid var(--my-angers-card-border);
+    border-radius: var(--my-angers-radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: var(--my-angers-transition);
+}
+
+.my-angers-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.my-angers-card-header {
+    padding: 20px 24px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--my-angers-text-muted);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.my-angers-card-header .dashicons {
+    margin-right: 8px;
+    color: var(--my-angers-emerald);
+}
+
+.my-angers-card-body {
+    padding: 15px 24px 24px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.my-angers-card-body.p-0 { padding: 0; }
+
+/* Typographie Spécifique */
+.my-angers-stat {
+    font-size: 42px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    color: var(--my-angers-text-main);
+}
+
+/* ==========================================================================
+ * Effets Spéciaux & Composants spécifiques
+ * ========================================================================== */
+
+/* Visiteurs en direct */
+.my-angers-live-card {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(26, 26, 26, 0.8));
+    border-color: rgba(0, 255, 136, 0.2);
+}
+
+.pulse-emerald {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--my-angers-emerald);
+    border-radius: 50%;
+    margin-right: 10px;
+    animation: pulse-green 2s infinite;
+}
+
+.pulse-text {
+    color: var(--my-angers-emerald);
+    text-shadow: 0 0 10px var(--my-angers-emerald-glow);
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+/* Switcher de Graphique */
+.chart-header-actions {
+    justify-content: space-between;
+}
+.chart-switcher {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 2px;
+}
+.switcher-btn {
+    background: none;
+    border: none;
+    color: var(--my-angers-text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--my-angers-transition);
+}
+.switcher-btn:hover { color: var(--my-angers-text-main); }
+.switcher-btn.active {
+    background: var(--my-angers-card-border);
+    color: var(--my-angers-emerald);
+}
+
+/* Wrapper de canvas */
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+.doughnut-wrapper {
+    height: 250px;
+}
+
+/* Listes Top Contenus */
+.my-angers-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.my-angers-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.2s;
+}
+
+.my-angers-list-item:last-child {
+    border-bottom: none;
+}
+
+.my-angers-list-item:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.my-angers-list-item.empty {
+    justify-content: center;
+    color: var(--my-angers-text-muted);
+    font-style: italic;
+}
+
+.my-angers-list-link {
+    color: var(--my-angers-text-main);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 15px;
+}
+
+.my-angers-list-link:hover {
+    color: var(--my-angers-emerald);
+}
+
+.my-angers-list-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.my-angers-badge {
+    background: rgba(255,255,255,0.05);
+    color: var(--my-angers-text-main);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.my-angers-badge.emerald {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--my-angers-emerald);
+    border-color: rgba(0, 255, 136, 0.2);
+}
+
+.my-angers-read-time {
+    font-size: 11px;
+    color: var(--my-angers-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Colonnes Admin WP Natives */
+.my-angers-viral {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00aa55;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    display: inline-block;
+    animation: pulse-green 3s infinite;
+}
