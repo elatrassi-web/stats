@@ -379,10 +379,9 @@ class Nexus_Stats_REST {
         }
 
         // Get Annotations for the timeframe
-        $table_annotations = $wpdb->prefix . 'nexus_stats_annotations';
         $annotations = $wpdb->get_results($wpdb->prepare("
             SELECT note_date, note_text
-            FROM $table_annotations
+            FROM {$wpdb->prefix}nexus_stats_annotations
             WHERE note_date >= DATE(%s) AND note_date <= DATE(%s)
         ", $start_date, $end_date));
 
@@ -491,7 +490,7 @@ class Nexus_Stats_REST {
         if ($compare) {
             $diff_seconds = strtotime($end_date) - strtotime($start_date);
             $prev_end_date = $start_date;
-            $prev_start_date = date('Y-m-d H:i:s', strtotime($start_date) - $diff_seconds);
+            $prev_start_date = gmdate('Y-m-d H:i:s', strtotime($start_date) - $diff_seconds);
 
             $chart_results_prev = $wpdb->get_results($wpdb->prepare("
                 SELECT DATE_FORMAT(view_datetime, %s) as time_label, COUNT(id) as view_count
