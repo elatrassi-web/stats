@@ -71,8 +71,8 @@ class Nexus_Stats_Hooks {
         $table = $wpdb->prefix . 'nexus_stats_views_log';
 
         // 1. Get average views for this exact hour over the last 30 days
-        $current_hour = date('H');
-        $thirty_days_ago = date('Y-m-d H:i:s', strtotime('-30 days'));
+        $current_hour = gmdate('H');
+        $thirty_days_ago = gmdate('Y-m-d H:i:s', strtotime('-30 days'));
 
         $avg_hourly_traffic = (int) $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(id) / 30
@@ -84,7 +84,7 @@ class Nexus_Stats_Hooks {
         if ($avg_hourly_traffic < 5) return;
 
         // 2. Get views in the last 4 hours
-        $four_hours_ago = date('Y-m-d H:i:s', strtotime('-4 hours'));
+        $four_hours_ago = gmdate('Y-m-d H:i:s', strtotime('-4 hours'));
         $recent_traffic = (int) $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(id) FROM $table
             WHERE view_datetime >= %s

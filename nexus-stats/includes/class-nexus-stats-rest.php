@@ -120,7 +120,7 @@ class Nexus_Stats_REST {
         $device     = sanitize_text_field($request->get_param('device'));
         $referrer   = sanitize_text_field($request->get_param('referrer'));
 
-        $lang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? sanitize_text_field($_SERVER['HTTP_ACCEPT_LANGUAGE']) : 'en';
+        $lang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_ACCEPT_LANGUAGE'])) : 'en';
 
         if (!$visitor_id) $visitor_id = 'unknown';
         if (!$device) $device = 'desktop';
@@ -129,7 +129,7 @@ class Nexus_Stats_REST {
         $eco_mode = get_option('nexus_stats_eco_mode', 'no');
         if ($eco_mode === 'yes') {
             // Very basic bot detection based on user agent
-            $ua = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower($_SERVER['HTTP_USER_AGENT']) : '';
+            $ua = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT']))) : '';
             if (preg_match('/bot|crawl|slurp|spider|mediapartners/i', $ua)) {
                 return rest_ensure_response(['success' => true, 'message' => 'Eco mode: Bot ignored']);
             }
@@ -279,7 +279,7 @@ class Nexus_Stats_REST {
 
         $now = current_time('timestamp');
         $start_date = '';
-        $end_date = date('Y-m-d H:i:s', $now);
+        $end_date = gmdate('Y-m-d H:i:s', $now);
         $group_format = '';
 
         switch ($time_range) {
@@ -288,8 +288,8 @@ class Nexus_Stats_REST {
                 $custom_end   = sanitize_text_field($request->get_param('custom_end'));
 
                 if ($custom_start && $custom_end) {
-                    $start_date = date('Y-m-d 00:00:00', strtotime($custom_start));
-                    $end_date   = date('Y-m-d 23:59:59', strtotime($custom_end));
+                    $start_date = gmdate('Y-m-d 00:00:00', strtotime($custom_start));
+                    $end_date   = gmdate('Y-m-d 23:59:59', strtotime($custom_end));
 
                     $diff = strtotime($end_date) - strtotime($start_date);
                     $days = round($diff / 86400);
@@ -303,35 +303,35 @@ class Nexus_Stats_REST {
                     }
                 } else {
                     // Fallback to today if dates are missing
-                    $start_date = date('Y-m-d 00:00:00', $now);
+                    $start_date = gmdate('Y-m-d 00:00:00', $now);
                     $group_format = '%H:00';
                 }
                 break;
             case '30min':
-                $start_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $now));
+                $start_date = gmdate('Y-m-d H:i:s', strtotime('-30 minutes', $now));
                 $group_format = '%H:%i';
                 break;
             case 'yesterday':
-                $start_date = date('Y-m-d 00:00:00', strtotime('yesterday', $now));
-                $end_date = date('Y-m-d 23:59:59', strtotime('yesterday', $now));
+                $start_date = gmdate('Y-m-d 00:00:00', strtotime('yesterday', $now));
+                $end_date = gmdate('Y-m-d 23:59:59', strtotime('yesterday', $now));
                 $group_format = '%H:00';
                 break;
             case '7days':
-                $start_date = date('Y-m-d 00:00:00', strtotime('-6 days', $now));
+                $start_date = gmdate('Y-m-d 00:00:00', strtotime('-6 days', $now));
                 $group_format = '%d/%m';
                 break;
             case '30days':
-                $start_date = date('Y-m-d 00:00:00', strtotime('-29 days', $now));
+                $start_date = gmdate('Y-m-d 00:00:00', strtotime('-29 days', $now));
                 $group_format = '%d/%m';
                 break;
             case 'last_month':
-                $start_date = date('Y-m-01 00:00:00', strtotime('first day of last month', $now));
-                $end_date = date('Y-m-t 23:59:59', strtotime('last day of last month', $now));
+                $start_date = gmdate('Y-m-01 00:00:00', strtotime('first day of last month', $now));
+                $end_date = gmdate('Y-m-t 23:59:59', strtotime('last day of last month', $now));
                 $group_format = '%d/%m';
                 break;
             case 'today':
             default:
-                $start_date = date('Y-m-d 00:00:00', $now);
+                $start_date = gmdate('Y-m-d 00:00:00', $now);
                 $group_format = '%H:00';
                 break;
         }
@@ -388,15 +388,15 @@ class Nexus_Stats_REST {
 
         // Get Monthly Goal Progress
         $monthly_goal = (int) get_option('nexus_stats_monthly_goal', 10000);
-        $month_start = date('Y-m-01 00:00:00', $now);
+        $month_start = gmdate('Y-m-01 00:00:00', $now);
         $month_views = $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(id) FROM $table_name
             WHERE view_datetime >= %s
         ", $month_start));
 
         // Narrative Summary logic
-        $prev_month_start = date('Y-m-01 00:00:00', strtotime('first day of last month'));
-        $prev_month_end   = date('Y-m-t 23:59:59', strtotime('last day of last month'));
+        $prev_month_start = gmdate('Y-m-01 00:00:00', strtotime('first day of last month'));
+        $prev_month_end   = gmdate('Y-m-t 23:59:59', strtotime('last day of last month'));
 
         $prev_month_views = (int) $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(id) FROM $table_name
@@ -566,7 +566,7 @@ class Nexus_Stats_REST {
 
         // Content Health Score Logic (Recent half vs Older half of the timeframe)
         $diff = strtotime($end_date) - strtotime($start_date);
-        $mid_date = date('Y-m-d H:i:s', strtotime($start_date) + ($diff / 2));
+        $mid_date = gmdate('Y-m-d H:i:s', strtotime($start_date) + ($diff / 2));
 
         $output = [];
         if ($results) {

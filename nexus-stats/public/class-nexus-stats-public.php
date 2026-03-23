@@ -38,6 +38,7 @@ class Nexus_Stats_Public {
                     'nonce' => wp_create_nonce('wp_rest'),
                     'i18n' => [
                         'clicks' => __('clics', 'nexus-stats'),
+                        /* translators: %s: number of clicks */
                         'clicks_on_element' => __('Nexus Stats: %s clics sur cet élément', 'nexus-stats')
                     ]
                 ]);

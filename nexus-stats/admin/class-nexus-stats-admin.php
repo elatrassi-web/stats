@@ -37,14 +37,14 @@ class Nexus_Stats_Admin {
         if ($hook != 'toplevel_page_nexus-stats-stats' && $hook != 'index.php') return;
 
         wp_enqueue_style('nexus-stats-admin-css', NEXUS_STATS_VIEWS_URL . 'assets/css/nexus-stats-admin.css', [], NEXUS_STATS_VIEWS_VERSION);
-        wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
-        wp_enqueue_script('chartjs-plugin-annotation', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js', ['chart-js'], null, true);
-        wp_enqueue_script('html2pdf-js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
+        wp_enqueue_script('chart-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/chart.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+        wp_enqueue_script('chartjs-plugin-annotation', NEXUS_STATS_VIEWS_URL . 'assets/vendor/chartjs-plugin-annotation.min.js', ['chart-js'], NEXUS_STATS_VIEWS_VERSION, true);
+        wp_enqueue_script('html2pdf-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/html2pdf.bundle.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
 
         if ($hook == 'toplevel_page_nexus-stats-stats') {
-            wp_enqueue_style('jsvectormap-css', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css', [], null);
-            wp_enqueue_script('jsvectormap-js', 'https://cdn.jsdelivr.net/npm/jsvectormap', [], null, true);
-            wp_enqueue_script('jsvectormap-world', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js', ['jsvectormap-js'], null, true);
+            wp_enqueue_style('jsvectormap-css', NEXUS_STATS_VIEWS_URL . 'assets/vendor/jsvectormap.min.css', [], NEXUS_STATS_VIEWS_VERSION);
+            wp_enqueue_script('jsvectormap-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/jsvectormap.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+            wp_enqueue_script('jsvectormap-world', NEXUS_STATS_VIEWS_URL . 'assets/vendor/world.js', ['jsvectormap-js'], NEXUS_STATS_VIEWS_VERSION, true);
             wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js', 'jsvectormap-js', 'jsvectormap-world'], NEXUS_STATS_VIEWS_VERSION, true);
 
             $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
@@ -71,6 +71,7 @@ class Nexus_Stats_Admin {
                     'fill_date_text' => __('Veuillez remplir la date et le texte.', 'nexus-stats'),
                     'pdf_name' => __('Rapport_Nexus_Stats.pdf', 'nexus-stats'),
                     'confirm_ghost' => __('Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?', 'nexus-stats'),
+                    /* translators: %s: number of ghost views */
                     'cleanup_done' => __('Nettoyage terminé : %s vues fantômes supprimées.', 'nexus-stats'),
                 ]
             ]);
@@ -148,7 +149,7 @@ class Nexus_Stats_Admin {
     // --- Colonnes ---
     public static function add_views_column($columns) {
         if (is_array($columns) && isset($columns['post_views'])) unset($columns['post_views']);
-        $columns['nexus_stats_views_col'] = '<span class="dashicons dashicons-visibility" title="Vues"></span> Vues';
+        $columns['nexus_stats_views_col'] = '<span class="dashicons dashicons-visibility" title="' . esc_attr__('Vues', 'nexus-stats') . '"></span> ' . esc_html__('Vues', 'nexus-stats');
         return $columns;
     }
 
@@ -157,7 +158,7 @@ class Nexus_Stats_Admin {
             $views = (int) get_post_meta($post_id, 'nexus_stats_view_count', true);
             // Mode Focus: Highlight if > threshold (e.g., 500)
             $class = ($views > 500) ? 'nexus-stats-viral' : '';
-            echo '<span class="' . $class . '"><strong>' . number_format($views, 0, ',', ' ') . '</strong></span>';
+            echo '<span class="' . esc_attr($class) . '"><strong>' . esc_html(number_format($views, 0, ',', ' ')) . '</strong></span>';
         }
     }
 
@@ -182,8 +183,8 @@ class Nexus_Stats_Admin {
 
         $args = array(
             'id'    => 'nexus_stats_live_stats',
-            'title' => '<span class="ab-icon dashicons dashicons-chart-line"></span><span class="ab-label" style="color:#00ff88;font-weight:bold;"><span class="live-dot-mini" style="display:inline-block;width:6px;height:6px;background:#00ff88;border-radius:50%;margin-right:4px;animation:pulse-green 2s infinite;"></span><span id="nexus_stats_topbar_live_count">' . $live_count . '</span> Live</span>',
-            'href'  => admin_url('admin.php?page=nexus-stats-stats'),
+            'title' => '<span class="ab-icon dashicons dashicons-chart-line"></span><span class="ab-label" style="color:#00ff88;font-weight:bold;"><span class="live-dot-mini" style="display:inline-block;width:6px;height:6px;background:#00ff88;border-radius:50%;margin-right:4px;animation:pulse-green 2s infinite;"></span><span id="nexus_stats_topbar_live_count">' . esc_html($live_count) . '</span> ' . esc_html__('Live', 'nexus-stats') . '</span>',
+            'href'  => esc_url(admin_url('admin.php?page=nexus-stats-stats')),
             'meta'  => array(
                 'class' => 'nexus-stats-admin-bar-node',
             )
@@ -202,14 +203,14 @@ class Nexus_Stats_Admin {
     // --- Dashboard Widget ---
     public static function add_dashboard_widget() {
         if (current_user_can('manage_options')) {
-            wp_add_dashboard_widget('nexus_stats_dashboard_widget', 'Stats Vues (24h)', [__CLASS__, 'render_dashboard_widget']);
+            wp_add_dashboard_widget('nexus_stats_dashboard_widget', esc_html__('Stats Vues (24h)', 'nexus-stats'), [__CLASS__, 'render_dashboard_widget']);
         }
     }
 
     public static function render_dashboard_widget() {
         // Un placeholder pour le script JS
         echo '<div id="nexus-stats-sparkline-container" style="height: 100px; width: 100%; position: relative;"><canvas id="nexusStatsSparkline"></canvas></div>';
-        echo '<p style="text-align:center;margin-top:10px;"><a href="' . admin_url('admin.php?page=nexus-stats-stats') . '">Voir le tableau de bord complet</a></p>';
+        echo '<p style="text-align:center;margin-top:10px;"><a href="' . esc_url(admin_url('admin.php?page=nexus-stats-stats')) . '">' . esc_html__('Voir le tableau de bord complet', 'nexus-stats') . '</a></p>';
 
         // Script inline minimal pour le sparkline
         ?>
@@ -220,7 +221,7 @@ class Nexus_Stats_Admin {
                 var ctx = canvas.getContext('2d');
 
                 fetch('<?php echo esc_url_raw(rest_url('nexus-stats/v1/stats/dashboard?time_range=yesterday')); ?>', {
-                    headers: { 'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>' }
+                    headers: { 'X-WP-Nonce': '<?php echo esc_attr(wp_create_nonce("wp_rest")); ?>' }
                 })
                 .then(res => res.json())
                 .then(response => {
@@ -256,7 +257,7 @@ class Nexus_Stats_Admin {
     // --- Client-Ready Shared Dashboard ---
     public static function handle_shared_dashboard() {
         if (isset($_GET['nexus_stats_share'])) {
-            $token = sanitize_text_field($_GET['nexus_stats_share']);
+            $token = sanitize_text_field(wp_unslash($_GET['nexus_stats_share']));
             $saved_token = get_option('nexus_stats_share_token', '');
 
             if (!empty($saved_token) && $token === $saved_token) {
@@ -268,12 +269,12 @@ class Nexus_Stats_Admin {
 
                 // Load dependencies
                 wp_enqueue_style('nexus-stats-admin-css', NEXUS_STATS_VIEWS_URL . 'assets/css/nexus-stats-admin.css', [], NEXUS_STATS_VIEWS_VERSION);
-                wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
-                wp_enqueue_script('chartjs-plugin-annotation', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js', ['chart-js'], null, true);
-                wp_enqueue_script('html2pdf-js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
-                wp_enqueue_style('jsvectormap-css', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css', [], null);
-                wp_enqueue_script('jsvectormap-js', 'https://cdn.jsdelivr.net/npm/jsvectormap', [], null, true);
-                wp_enqueue_script('jsvectormap-world', 'https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js', ['jsvectormap-js'], null, true);
+                wp_enqueue_script('chart-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/chart.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+                wp_enqueue_script('chartjs-plugin-annotation', NEXUS_STATS_VIEWS_URL . 'assets/vendor/chartjs-plugin-annotation.min.js', ['chart-js'], NEXUS_STATS_VIEWS_VERSION, true);
+                wp_enqueue_script('html2pdf-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/html2pdf.bundle.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+                wp_enqueue_style('jsvectormap-css', NEXUS_STATS_VIEWS_URL . 'assets/vendor/jsvectormap.min.css', [], NEXUS_STATS_VIEWS_VERSION);
+                wp_enqueue_script('jsvectormap-js', NEXUS_STATS_VIEWS_URL . 'assets/vendor/jsvectormap.min.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+                wp_enqueue_script('jsvectormap-world', NEXUS_STATS_VIEWS_URL . 'assets/vendor/world.js', ['jsvectormap-js'], NEXUS_STATS_VIEWS_VERSION, true);
                 wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js', 'jsvectormap-js', 'jsvectormap-world'], NEXUS_STATS_VIEWS_VERSION, true);
 
                 $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
@@ -290,14 +291,14 @@ class Nexus_Stats_Admin {
                 // Render standalone page
                 echo '<!DOCTYPE html><html><head><title>Rapport Stats</title>';
                 wp_head(); // Print enqueued scripts/styles
-                echo '<style>body { margin:0; padding:20px; background: ' . ($theme === 'dark' ? '#121212' : '#f5f7fa') . ';} .nexus-stats-wrap { margin:0!important; }</style>';
+            echo '<style>body { margin:0; padding:20px; background: ' . esc_attr($theme === 'dark' ? '#121212' : '#f5f7fa') . ';} .nexus-stats-wrap { margin:0!important; }</style>';
                 echo '</head><body>';
                 require_once NEXUS_STATS_VIEWS_DIR . 'admin/views/dashboard.php';
                 wp_footer();
                 echo '</body></html>';
                 exit;
             } else {
-                wp_die("Lien expiré ou invalide.", "Accès Refusé", ['response' => 403]);
+            wp_die(esc_html__("Lien expiré ou invalide.", 'nexus-stats'), esc_html__("Accès Refusé", 'nexus-stats'), ['response' => 403]);
             }
         }
     }
@@ -407,7 +408,7 @@ class Nexus_Stats_Admin {
                         <td>
                             <input type="text" name="nexus_stats_share_token" value="<?php echo esc_attr(get_option('nexus_stats_share_token', '')); ?>" class="regular-text" />
                             <p class="description">Générez un mot de passe ou jeton ici (ex: "client2026"). Le tableau de bord sera visible sans être connecté à l'adresse :<br>
-                            <code><?php echo site_url('/?nexus_stats_share=VOTRE_JETON'); ?></code>
+                            <code><?php echo esc_url(site_url('/?nexus_stats_share=VOTRE_JETON')); ?></code>
                             </p>
                         </td>
                     </tr>

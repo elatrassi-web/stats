@@ -9,60 +9,60 @@ Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Statistiques avancées : Compteur AJAX, Visiteurs uniques, Tableau de bord complet et Suivi des Visiteurs EN DIRECT (Version Sécurisée Anti-Crash). Refonte 2026.
+Advanced analytics: AJAX counter, Unique visitors, beautiful Dashboard, and secure LIVE Visitor Tracking. Lightweight and GDPR ready.
 
 == Description ==
 
-**Nexus Stats** est l'outil d'analyse de trafic WordPress nouvelle génération.
-Conçu pour être ultra-léger et ne pas ralentir votre site, il remplace avantageusement les solutions lourdes en offrant un tableau de bord moderne (style Bento Grid / Glassmorphism) directement dans votre interface d'administration WordPress.
+**Nexus Stats** is the next-generation WordPress traffic analysis tool.
+Designed to be ultra-lightweight and not slow down your site, it advantageously replaces heavy solutions by offering a modern dashboard (Bento Grid / Glassmorphism style) directly in your WordPress administration interface.
 
-= Fonctionnalités Clés (Trend 2026) =
-*   **Temps Réel (Live) :** Voyez exactement combien de visiteurs sont sur votre site en ce moment, avec un point de pulsation vert dans votre barre d'administration.
-*   **Heatmap Minimaliste :** Visualisez les zones les plus cliquées de votre site directement depuis le front-end (réservé aux administrateurs).
-*   **Mode "Confidentialité Totale" (RGPD Ready) :** Anonymisation stricte des adresses IP et suppression totale des cookies/localStorage pour une conformité maximale.
-*   **Mode "Éco-Conception" (Green IT) :** Ignore intelligemment les robots d'indexation pour soulager votre base de données.
-*   **Origine du Trafic & WooCommerce :** Découvrez d'où viennent vos visiteurs (Recherche, Social, Direct) et liez ces sources directement à vos revenus WooCommerce.
-*   **Santé du Contenu (Core Web Vitals) :** Mesurez le temps de lecture, le taux de défilement (Scroll Depth) et le temps de chargement réel de vos pages.
-*   **Alertes de Downtime :** Recevez un email automatique si votre trafic chute à zéro de manière anormale par rapport à votre moyenne habituelle.
-*   **Client-Ready :** Partagez un lien sécurisé de vos statistiques à vos clients, sans leur donner accès à votre back-office WordPress.
-*   **Export PDF :** Générez des rapports mensuels professionnels en un clic.
+= Key Features (2026 Trend) =
+*   **Real Time (Live):** See exactly how many visitors are on your site right now, with a green pulsating dot in your admin bar.
+*   **Minimalist Heatmap:** Visualize the most clicked areas of your site directly from the front-end (reserved for administrators).
+*   **"Total Privacy" Mode (GDPR Ready):** Strict anonymization of IP addresses and total removal of cookies/localStorage for maximum compliance.
+*   **"Eco-Design" Mode (Green IT):** Intelligently ignores indexing robots to relieve your database.
+*   **Traffic Origin & WooCommerce:** Discover where your visitors come from (Search, Social, Direct) and link these sources directly to your WooCommerce revenue.
+*   **Content Health (Core Web Vitals):** Measure reading time, scroll depth, and the actual loading time of your pages.
+*   **Downtime Alerts:** Receive an automatic email if your traffic drops to zero abnormally compared to your usual average.
+*   **Client-Ready:** Share a secure link to your statistics with your clients, without giving them access to your WordPress back-office.
+*   **PDF Export:** Generate professional monthly reports with one click.
 
 == Installation ==
 
-1. Téléchargez le fichier `.zip` de l'extension.
-2. Allez dans votre administration WordPress > **Extensions** > **Ajouter**.
-3. Cliquez sur **Téléverser une extension**, choisissez le fichier zip et cliquez sur **Installer maintenant**.
-4. Activez l'extension via le menu "Extensions" de WordPress.
-5. Allez dans le nouveau menu **Nexus Stats** pour consulter vos données et configurer vos réglages.
+1. Download the `.zip` file of the plugin.
+2. Go to your WordPress administration > **Plugins** > **Add New**.
+3. Click on **Upload Plugin**, choose the zip file and click on **Install Now**.
+4. Activate the plugin via the WordPress "Plugins" menu.
+5. Go to the new **Nexus Stats** menu to view your data and configure your settings.
 
 == Frequently Asked Questions ==
 
-= Est-ce que ce plugin ralentit mon site ? =
-Non. Nexus Stats a été conçu pour la performance ("Éco-Conception"). Il utilise l'API REST native de WordPress (beaucoup plus rapide que l'ancien `admin-ajax.php`) et utilise `navigator.sendBeacon()` pour ne pas bloquer le chargement des pages.
+= Does this plugin slow down my site? =
+No. Nexus Stats was designed for performance ("Eco-Design"). It uses the native WordPress REST API (much faster than the old `admin-ajax.php`) and uses `navigator.sendBeacon()` to avoid blocking page loads.
 
-= Est-il conforme au RGPD ? =
-Oui. En activant le mode "Confidentialité Totale" dans les réglages, le plugin ne dépose aucun cookie, n'utilise pas le LocalStorage, et hache toutes les adresses IP avant de les traiter.
+= Is it GDPR compliant? =
+Yes. By activating the "Total Privacy" mode in the settings, the plugin does not drop any cookies, does not use LocalStorage, and hashes all IP addresses before processing them.
 
-= Comment fonctionne le lien de partage (Client-Ready) ? =
-Dans les réglages du plugin, définissez un "Jeton de partage" (ex: `monclient2026`). Vous pourrez alors envoyer l'URL `votre-site.com/?nexus_stats_share=monclient2026` à votre client. Il verra le tableau de bord des statistiques sans avoir besoin de se connecter.
+= How does the share link (Client-Ready) work? =
+In the plugin settings, set a "Share Token" (e.g., `myclient2026`). You can then send the URL `yoursite.com/?nexus_stats_share=myclient2026` to your client. They will see the statistics dashboard without needing to log in.
 
 == Screenshots ==
 
-1. Tableau de bord principal avec le graphique d'évolution et les objectifs.
-2. Vue des statistiques de conversion WooCommerce et de l'origine du trafic.
-3. Panneau de réglages avec les options RGPD, Éco-conception et Alertes.
+1. Main dashboard with evolution chart and goals.
+2. View of WooCommerce conversion statistics and traffic origin.
+3. Settings panel with GDPR, Eco-design, and Alerts options.
 
 == Changelog ==
 
 = 1.0.0 =
-* Lancement initial de "Nexus Stats" (Refonte totale de l'ancien plugin My Angers).
-* Nouvelle architecture modulaire MVC.
-* Interface d'administration totalement repensée (Bento Grid, Dark/Light Mode).
-* Ajout du suivi de profondeur de défilement (Scroll Depth).
-* Ajout du suivi des clics sur les liens sortants (Outbound Links).
-* Intégration WooCommerce (Liaison Revenus / Source de trafic).
-* Détection intelligente des erreurs 404.
-* Alertes de chute anormale de trafic (Downtime).
-* Ajout de l'export PDF.
-* Module de Heatmap minimaliste sur le front-end.
-* Traductions complètes (Anglais, Espagnol, Allemand, Russe, Arabe, Italien, Néerlandais).
+* Initial launch of "Nexus Stats" (Total overhaul of the old My Angers plugin).
+* New modular MVC architecture.
+* Completely redesigned administration interface (Bento Grid, Dark/Light Mode).
+* Added scroll depth tracking.
+* Added tracking of clicks on outbound links.
+* WooCommerce integration (Revenue / Traffic source link).
+* Intelligent 404 error detection.
+* Abnormal traffic drop alerts (Downtime).
+* Added PDF export.
+* Minimalist Heatmap module on the front-end.
+* Full translations (English, Spanish, German, Russian, Arabic, Italian, Dutch).

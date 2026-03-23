@@ -167,7 +167,7 @@ class Nexus_Stats_DB {
             return $is_home ? ['type' => 'direct', 'domain' => ''] : ['type' => 'private', 'domain' => 'Dark Social'];
         }
 
-        $parsed = parse_url($referrer_url);
+        $parsed = wp_parse_url($referrer_url);
         $domain = isset($parsed['host']) ? strtolower(str_replace('www.', '', $parsed['host'])) : '';
 
         // Search Engines
@@ -181,7 +181,7 @@ class Nexus_Stats_DB {
         }
 
         // Self (Internal traffic)
-        $home_url = parse_url(home_url(), PHP_URL_HOST);
+        $home_url = wp_parse_url(home_url(), PHP_URL_HOST);
         if ($domain === str_replace('www.', '', $home_url)) {
             return ['type' => 'internal', 'domain' => $domain];
         }
@@ -196,7 +196,7 @@ class Nexus_Stats_DB {
         $table_log = $wpdb->prefix . 'nexus_stats_views_log';
 
         // Process IP for Geolocation (Anonymized)
-        $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '');
+        $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])) : (isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '');
         $country_code = self::get_country_code(explode(',', $ip)[0]);
 
         // Process Referrer
