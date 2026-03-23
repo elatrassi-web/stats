@@ -1,49 +1,49 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class My_Angers_REST {
+class Nexus_Stats_REST {
     public static function init() {
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
     }
 
     public static function register_routes() {
         // Track View
-        register_rest_route('my-angers/v1', '/track', [
+        register_rest_route('nexus-stats/v1', '/track', [
             'methods'  => 'POST',
             'callback' => [__CLASS__, 'track_view'],
             'permission_callback' => '__return_true', // Ouvert à tous pour le tracking
         ]);
 
         // Live Ping
-        register_rest_route('my-angers/v1', '/live/ping', [
+        register_rest_route('nexus-stats/v1', '/live/ping', [
             'methods'  => 'POST',
             'callback' => [__CLASS__, 'live_ping'],
             'permission_callback' => '__return_true',
         ]);
 
         // Live Exit
-        register_rest_route('my-angers/v1', '/live/exit', [
+        register_rest_route('nexus-stats/v1', '/live/exit', [
             'methods'  => 'POST',
             'callback' => [__CLASS__, 'live_exit'],
             'permission_callback' => '__return_true',
         ]);
 
         // Update Read Time
-        register_rest_route('my-angers/v1', '/read-time', [
+        register_rest_route('nexus-stats/v1', '/read-time', [
             'methods'  => 'POST',
             'callback' => [__CLASS__, 'update_read_time'],
             'permission_callback' => '__return_true',
         ]);
 
         // Get Dashboard Data (Admin only)
-        register_rest_route('my-angers/v1', '/stats/dashboard', [
+        register_rest_route('nexus-stats/v1', '/stats/dashboard', [
             'methods'  => 'GET',
             'callback' => [__CLASS__, 'get_dashboard_data'],
             'permission_callback' => [__CLASS__, 'check_admin_permissions'],
         ]);
 
         // Get Live Count (Admin only)
-        register_rest_route('my-angers/v1', '/stats/live', [
+        register_rest_route('nexus-stats/v1', '/stats/live', [
             'methods'  => 'GET',
             'callback' => [__CLASS__, 'get_live_count'],
             'permission_callback' => [__CLASS__, 'check_admin_permissions'],
@@ -63,7 +63,7 @@ class My_Angers_REST {
         if (!$device) $device = 'desktop';
 
         // Check eco mode
-        $eco_mode = get_option('my_angers_eco_mode', 'no');
+        $eco_mode = get_option('nexus_stats_eco_mode', 'no');
         if ($eco_mode === 'yes') {
             // Very basic bot detection based on user agent
             $ua = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower($_SERVER['HTTP_USER_AGENT']) : '';
@@ -73,7 +73,7 @@ class My_Angers_REST {
         }
 
         if ($post_id > 0) {
-            My_Angers_DB::track_view($post_id, $visitor_id, $device);
+            Nexus_Stats_DB::track_view($post_id, $visitor_id, $device);
         }
 
         return rest_ensure_response(['success' => true]);
@@ -85,7 +85,7 @@ class My_Angers_REST {
         $read_time  = intval($request->get_param('time')); // en secondes
 
         if ($post_id > 0 && $visitor_id && $read_time > 0) {
-            My_Angers_DB::update_read_time($post_id, $visitor_id, $read_time);
+            Nexus_Stats_DB::update_read_time($post_id, $visitor_id, $read_time);
         }
         return rest_ensure_response(['success' => true]);
     }
@@ -95,7 +95,7 @@ class My_Angers_REST {
         $post_id    = intval($request->get_param('post_id'));
 
         if ($visitor_id) {
-            My_Angers_DB::live_ping($visitor_id, $post_id);
+            Nexus_Stats_DB::live_ping($visitor_id, $post_id);
         }
         return rest_ensure_response(['success' => true]);
     }
@@ -103,14 +103,14 @@ class My_Angers_REST {
     public static function live_exit(WP_REST_Request $request) {
         $visitor_id = sanitize_text_field($request->get_param('visitor_id'));
         if ($visitor_id) {
-            My_Angers_DB::live_exit($visitor_id);
+            Nexus_Stats_DB::live_exit($visitor_id);
         }
         return rest_ensure_response(['success' => true]);
     }
 
     public static function get_dashboard_data(WP_REST_Request $request) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'my_angers_views_log';
+        $table_name = $wpdb->prefix . 'nexus_stats_views_log';
         $time_range = sanitize_text_field($request->get_param('time_range'));
         if (!$time_range) $time_range = 'today';
 
@@ -207,7 +207,7 @@ class My_Angers_REST {
 
     private static function get_top_content($post_type, $start_date, $end_date) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'my_angers_views_log';
+        $table_name = $wpdb->prefix . 'nexus_stats_views_log';
         $results = $wpdb->get_results($wpdb->prepare("
             SELECT p.post_title, p.ID, COUNT(v.id) as views, AVG(v.read_time_seconds) as avg_read_time
             FROM $table_name v
@@ -236,7 +236,7 @@ class My_Angers_REST {
     }
 
     public static function get_live_count(WP_REST_Request $request) {
-        $count = My_Angers_DB::get_live_count();
+        $count = Nexus_Stats_DB::get_live_count();
         return rest_ensure_response(['success' => true, 'data' => $count]);
     }
 }

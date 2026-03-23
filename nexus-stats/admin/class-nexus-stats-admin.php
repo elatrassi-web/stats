@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-class My_Angers_Admin {
+class Nexus_Stats_Admin {
     public static function init() {
         add_action('admin_menu', [__CLASS__, 'add_admin_menu']);
         add_action('admin_enqueue_scripts', [__CLASS__, 'enqueue_scripts']);
@@ -26,23 +26,23 @@ class My_Angers_Admin {
     }
 
     public static function add_admin_menu() {
-        add_menu_page('Nexus Stats', 'Stats Vues', 'manage_options', 'my-angers-stats', [__CLASS__, 'render_admin_page'], 'dashicons-chart-bar', 6);
-        add_submenu_page('my-angers-stats', 'Réglages Nexus Stats', 'Réglages', 'manage_options', 'my-angers-settings', [__CLASS__, 'render_settings_page']);
+        add_menu_page('Nexus Stats', 'Stats Vues', 'manage_options', 'nexus-stats-stats', [__CLASS__, 'render_admin_page'], 'dashicons-chart-bar', 6);
+        add_submenu_page('nexus-stats-stats', 'Réglages Nexus Stats', 'Réglages', 'manage_options', 'nexus-stats-settings', [__CLASS__, 'render_settings_page']);
     }
 
     public static function enqueue_scripts($hook) {
-        if ($hook != 'toplevel_page_my-angers-stats' && $hook != 'index.php') return;
+        if ($hook != 'toplevel_page_nexus-stats-stats' && $hook != 'index.php') return;
 
-        wp_enqueue_style('my-angers-admin-css', MY_ANGERS_VIEWS_URL . 'assets/css/my-angers-admin.css', [], MY_ANGERS_VIEWS_VERSION);
+        wp_enqueue_style('nexus-stats-admin-css', NEXUS_STATS_VIEWS_URL . 'assets/css/nexus-stats-admin.css', [], NEXUS_STATS_VIEWS_VERSION);
         wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
 
-        if ($hook == 'toplevel_page_my-angers-stats') {
-            wp_enqueue_script('my-angers-admin-js', MY_ANGERS_VIEWS_URL . 'assets/js/my-angers-admin.js', ['chart-js'], MY_ANGERS_VIEWS_VERSION, true);
+        if ($hook == 'toplevel_page_nexus-stats-stats') {
+            wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js'], NEXUS_STATS_VIEWS_VERSION, true);
 
-            $refresh_rate = get_option('my_angers_refresh_rate', 60);
+            $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
 
-            wp_localize_script('my-angers-admin-js', 'myAngersAdminData', [
-                'restUrl' => esc_url_raw(rest_url('my-angers/v1')),
+            wp_localize_script('nexus-stats-admin-js', 'nexusStatsAdminData', [
+                'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'refreshRate' => (int)$refresh_rate * 1000
             ]);
@@ -50,12 +50,12 @@ class My_Angers_Admin {
     }
 
     public static function register_settings() {
-        register_setting('my_angers_settings_group', 'my_angers_refresh_rate', [
+        register_setting('nexus_stats_settings_group', 'nexus_stats_refresh_rate', [
             'type' => 'integer',
             'default' => 60,
             'sanitize_callback' => 'absint'
         ]);
-        register_setting('my_angers_settings_group', 'my_angers_eco_mode', [
+        register_setting('nexus_stats_settings_group', 'nexus_stats_eco_mode', [
             'type' => 'string',
             'default' => 'no',
             'sanitize_callback' => 'sanitize_text_field'
@@ -65,28 +65,28 @@ class My_Angers_Admin {
     // --- Colonnes ---
     public static function add_views_column($columns) {
         if (is_array($columns) && isset($columns['post_views'])) unset($columns['post_views']);
-        $columns['my_angers_views_col'] = '<span class="dashicons dashicons-visibility" title="Vues"></span> Vues';
+        $columns['nexus_stats_views_col'] = '<span class="dashicons dashicons-visibility" title="Vues"></span> Vues';
         return $columns;
     }
 
     public static function views_column_data($column, $post_id) {
-        if ($column === 'my_angers_views_col') {
-            $views = (int) get_post_meta($post_id, 'my_angers_view_count', true);
+        if ($column === 'nexus_stats_views_col') {
+            $views = (int) get_post_meta($post_id, 'nexus_stats_view_count', true);
             // Mode Focus: Highlight if > threshold (e.g., 500)
-            $class = ($views > 500) ? 'my-angers-viral' : '';
+            $class = ($views > 500) ? 'nexus-stats-viral' : '';
             echo '<span class="' . $class . '"><strong>' . number_format($views, 0, ',', ' ') . '</strong></span>';
         }
     }
 
     public static function sortable_views_column($columns) {
-        $columns['my_angers_views_col'] = 'my_angers_views_col';
+        $columns['nexus_stats_views_col'] = 'nexus_stats_views_col';
         return $columns;
     }
 
     public static function views_orderby($query) {
         if (!is_admin() || !$query->is_main_query()) return;
-        if ('my_angers_views_col' === $query->get('orderby')) {
-            $query->set('meta_key', 'my_angers_view_count');
+        if ('nexus_stats_views_col' === $query->get('orderby')) {
+            $query->set('meta_key', 'nexus_stats_view_count');
             $query->set('orderby', 'meta_value_num');
         }
     }
@@ -95,14 +95,14 @@ class My_Angers_Admin {
     public static function add_admin_bar_node($wp_admin_bar) {
         if (!current_user_can('manage_options')) return;
 
-        $live_count = My_Angers_DB::get_live_count();
+        $live_count = Nexus_Stats_DB::get_live_count();
 
         $args = array(
-            'id'    => 'my_angers_live_stats',
+            'id'    => 'nexus_stats_live_stats',
             'title' => '<span class="ab-icon dashicons dashicons-chart-line"></span><span class="ab-label" style="color:#00ff88;font-weight:bold;"><span class="live-dot-mini" style="display:inline-block;width:6px;height:6px;background:#00ff88;border-radius:50%;margin-right:4px;animation:pulse-green 2s infinite;"></span>' . $live_count . ' Live</span>',
-            'href'  => admin_url('admin.php?page=my-angers-stats'),
+            'href'  => admin_url('admin.php?page=nexus-stats-stats'),
             'meta'  => array(
-                'class' => 'my-angers-admin-bar-node',
+                'class' => 'nexus-stats-admin-bar-node',
             )
         );
         $wp_admin_bar->add_node($args);
@@ -119,24 +119,24 @@ class My_Angers_Admin {
     // --- Dashboard Widget ---
     public static function add_dashboard_widget() {
         if (current_user_can('manage_options')) {
-            wp_add_dashboard_widget('my_angers_dashboard_widget', 'Stats Vues (24h)', [__CLASS__, 'render_dashboard_widget']);
+            wp_add_dashboard_widget('nexus_stats_dashboard_widget', 'Stats Vues (24h)', [__CLASS__, 'render_dashboard_widget']);
         }
     }
 
     public static function render_dashboard_widget() {
         // Un placeholder pour le script JS
-        echo '<div id="my-angers-sparkline-container" style="height: 100px; width: 100%; position: relative;"><canvas id="myAngersSparkline"></canvas></div>';
-        echo '<p style="text-align:center;margin-top:10px;"><a href="' . admin_url('admin.php?page=my-angers-stats') . '">Voir le tableau de bord complet</a></p>';
+        echo '<div id="nexus-stats-sparkline-container" style="height: 100px; width: 100%; position: relative;"><canvas id="nexusStatsSparkline"></canvas></div>';
+        echo '<p style="text-align:center;margin-top:10px;"><a href="' . admin_url('admin.php?page=nexus-stats-stats') . '">Voir le tableau de bord complet</a></p>';
 
         // Script inline minimal pour le sparkline
         ?>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                var canvas = document.getElementById('myAngersSparkline');
+                var canvas = document.getElementById('nexusStatsSparkline');
                 if(!canvas) return;
                 var ctx = canvas.getContext('2d');
 
-                fetch('<?php echo esc_url_raw(rest_url('my-angers/v1/stats/dashboard?time_range=yesterday')); ?>', {
+                fetch('<?php echo esc_url_raw(rest_url('nexus-stats/v1/stats/dashboard?time_range=yesterday')); ?>', {
                     headers: { 'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>' }
                 })
                 .then(res => res.json())
@@ -173,24 +173,24 @@ class My_Angers_Admin {
     // --- Pages d'admin ---
     public static function render_admin_page() {
         // Inclus le HTML du tableau de bord
-        require_once MY_ANGERS_VIEWS_DIR . 'admin/views/dashboard.php';
+        require_once NEXUS_STATS_VIEWS_DIR . 'admin/views/dashboard.php';
     }
 
     public static function render_settings_page() {
         ?>
-        <div class="wrap my-angers-wrap">
+        <div class="wrap nexus-stats-wrap">
             <h1>Réglages Nexus Stats</h1>
             <form method="post" action="options.php">
-                <?php settings_fields('my_angers_settings_group'); ?>
-                <?php do_settings_sections('my_angers_settings_group'); ?>
+                <?php settings_fields('nexus_stats_settings_group'); ?>
+                <?php do_settings_sections('nexus_stats_settings_group'); ?>
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row">Délai d'actualisation En Direct (secondes)</th>
                         <td>
-                            <select name="my_angers_refresh_rate">
-                                <option value="15" <?php selected(get_option('my_angers_refresh_rate', 60), 15); ?>>15 secondes (Très rapide - Attention serveur)</option>
-                                <option value="30" <?php selected(get_option('my_angers_refresh_rate', 60), 30); ?>>30 secondes (Rapide)</option>
-                                <option value="60" <?php selected(get_option('my_angers_refresh_rate', 60), 60); ?>>60 secondes (Recommandé - Économique)</option>
+                            <select name="nexus_stats_refresh_rate">
+                                <option value="15" <?php selected(get_option('nexus_stats_refresh_rate', 60), 15); ?>>15 secondes (Très rapide - Attention serveur)</option>
+                                <option value="30" <?php selected(get_option('nexus_stats_refresh_rate', 60), 30); ?>>30 secondes (Rapide)</option>
+                                <option value="60" <?php selected(get_option('nexus_stats_refresh_rate', 60), 60); ?>>60 secondes (Recommandé - Économique)</option>
                             </select>
                         </td>
                     </tr>
@@ -198,7 +198,7 @@ class My_Angers_Admin {
                         <th scope="row">Mode Éco-Conception (Green IT)</th>
                         <td>
                             <label>
-                                <input type="checkbox" name="my_angers_eco_mode" value="yes" <?php checked(get_option('my_angers_eco_mode', 'no'), 'yes'); ?> />
+                                <input type="checkbox" name="nexus_stats_eco_mode" value="yes" <?php checked(get_option('nexus_stats_eco_mode', 'no'), 'yes'); ?> />
                                 Ignorer les bots connus et optimiser les requêtes
                             </label>
                             <p class="description">Activez cette option pour réduire la charge sur votre serveur en ne comptabilisant pas les robots d'indexation (Google, Bing, etc.).</p>

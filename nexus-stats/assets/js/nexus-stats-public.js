@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Les données passées via wp_localize_script
-    const data = window.myAngersData;
+    const data = window.nexusStatsData;
     if (!data || !data.postID || !data.restUrl) return;
 
     const postID = data.postID;
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const device = window.innerWidth <= 768 ? 'mobile' : 'desktop';
 
     // 2. Gestion de l'ID Visiteur
-    let vid = localStorage.getItem('my_angers_visitor_id');
+    let vid = localStorage.getItem('nexus_stats_visitor_id');
     if (!vid) {
         vid = 'vid_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-        localStorage.setItem('my_angers_visitor_id', vid);
+        localStorage.setItem('nexus_stats_visitor_id', vid);
     }
 
     // Fonction utilitaire pour envoyer des requêtes POST fetch
@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // 3. TRACKING GLOBAL (1 vue max par minute pour un article donné)
-    if (!window.myAngersViewFired) {
-        window.myAngersViewFired = true;
-        const lastView = sessionStorage.getItem('my_angers_view_time_' + postID);
+    if (!window.nexusStatsViewFired) {
+        window.nexusStatsViewFired = true;
+        const lastView = sessionStorage.getItem('nexus_stats_view_time_' + postID);
 
         if (!lastView || (now - parseInt(lastView)) >= 60000) {
-            sessionStorage.setItem('my_angers_view_time_' + postID, now);
+            sessionStorage.setItem('nexus_stats_view_time_' + postID, now);
             sendPostRequest('/track', {
                 post_id: postID,
                 visitor_id: vid,

@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", function() {
     // Vérification des variables globales et des canvas
-    if (!window.myAngersAdminData) return;
+    if (!window.nexusStatsAdminData) return;
 
-    const restUrl = myAngersAdminData.restUrl;
-    const nonce = myAngersAdminData.nonce;
-    const refreshRate = myAngersAdminData.refreshRate || 60000;
+    const restUrl = nexusStatsAdminData.restUrl;
+    const nonce = nexusStatsAdminData.nonce;
+    const refreshRate = nexusStatsAdminData.refreshRate || 60000;
 
-    const mainCanvas = document.getElementById('myAngersMainChart');
-    const deviceCanvas = document.getElementById('myAngersDeviceChart');
+    const mainCanvas = document.getElementById('nexusStatsMainChart');
+    const deviceCanvas = document.getElementById('nexusStatsDeviceChart');
     if (!mainCanvas) return; // Nous ne sommes pas sur la page de dashboard
 
     const mainCtx = mainCanvas.getContext('2d');
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let deviceChart = null;
     let currentChartType = 'line'; // Par défaut
 
-    const filterSelect = document.getElementById('my_angers_time_filter');
+    const filterSelect = document.getElementById('nexus_stats_time_filter');
     const switcherBtns = document.querySelectorAll('.switcher-btn');
 
     // Configuration globale Chart.js pour le Dark Mode
@@ -157,17 +157,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // --- Listes Top Contenus ---
                 const createListHtml = (items) => {
-                    if (!items || items.length === 0) return '<li class="my-angers-list-item empty">Aucune donnée pour cette période.</li>';
+                    if (!items || items.length === 0) return '<li class="nexus-stats-list-item empty">Aucune donnée pour cette période.</li>';
                     let html = '';
                     items.forEach(function(item) {
                         html += `
-                        <li class="my-angers-list-item">
-                            <a href="${item.edit_link}" class="my-angers-list-link" target="_blank" title="Modifier ${item.title}">${item.title}</a>
-                            <div class="my-angers-list-meta">
-                                <span class="my-angers-read-time" title="Temps de lecture moyen">
+                        <li class="nexus-stats-list-item">
+                            <a href="${item.edit_link}" class="nexus-stats-list-link" target="_blank" title="Modifier ${item.title}">${item.title}</a>
+                            <div class="nexus-stats-list-meta">
+                                <span class="nexus-stats-read-time" title="Temps de lecture moyen">
                                     <span class="dashicons dashicons-clock"></span> ${formatTime(item.avg_read_time)}
                                 </span>
-                                <span class="my-angers-badge emerald" title="Vues Totales">
+                                <span class="nexus-stats-badge emerald" title="Vues Totales">
                                     ${formatNumber(item.views)}
                                 </span>
                             </div>
@@ -176,8 +176,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     return html;
                 };
 
-                document.getElementById('my_angers_top_posts').innerHTML = createListHtml(data.top_posts);
-                document.getElementById('my_angers_top_pages').innerHTML = createListHtml(data.top_pages);
+                document.getElementById('nexus_stats_top_posts').innerHTML = createListHtml(data.top_posts);
+                document.getElementById('nexus_stats_top_pages').innerHTML = createListHtml(data.top_pages);
             }
         })
         .catch(err => console.error("Erreur chargement Dashboard Nexus Stats:", err));
