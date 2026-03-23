@@ -1,9 +1,11 @@
 <?php
 /**
- * Plugin Name: My Angers - Compteur de Vues
+ * Plugin Name: Nexus Stats
+ * Plugin URI: https://www.linkedin.com/in/elatrassi/
  * Description: Statistiques avancées : Compteur AJAX, Visiteurs uniques, Tableau de bord complet et Suivi des Visiteurs EN DIRECT (Version Sécurisée Anti-Crash). Refonte 2026.
  * Version: 6.0
  * Author: Mohamed El Atrassi
+ * Author URI: https://www.linkedin.com/in/elatrassi/
  * Text Domain: my-angers-views
  */
 

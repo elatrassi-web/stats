@@ -26,8 +26,8 @@ class My_Angers_Admin {
     }
 
     public static function add_admin_menu() {
-        add_menu_page('Statistiques My Angers', 'Stats Vues', 'manage_options', 'my-angers-stats', [__CLASS__, 'render_admin_page'], 'dashicons-chart-bar', 6);
-        add_submenu_page('my-angers-stats', 'Réglages My Angers', 'Réglages', 'manage_options', 'my-angers-settings', [__CLASS__, 'render_settings_page']);
+        add_menu_page('Nexus Stats', 'Stats Vues', 'manage_options', 'my-angers-stats', [__CLASS__, 'render_admin_page'], 'dashicons-chart-bar', 6);
+        add_submenu_page('my-angers-stats', 'Réglages Nexus Stats', 'Réglages', 'manage_options', 'my-angers-settings', [__CLASS__, 'render_settings_page']);
     }
 
     public static function enqueue_scripts($hook) {
@@ -179,7 +179,7 @@ class My_Angers_Admin {
     public static function render_settings_page() {
         ?>
         <div class="wrap my-angers-wrap">
-            <h1>Réglages My Angers - Compteur de Vues</h1>
+            <h1>Réglages Nexus Stats</h1>
             <form method="post" action="options.php">
                 <?php settings_fields('my_angers_settings_group'); ?>
                 <?php do_settings_sections('my_angers_settings_group'); ?>

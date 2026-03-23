@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById('my_angers_top_pages').innerHTML = createListHtml(data.top_pages);
             }
         })
-        .catch(err => console.error("Erreur chargement Dashboard My Angers:", err));
+        .catch(err => console.error("Erreur chargement Dashboard Nexus Stats:", err));
     }
 
     // 2. Mettre à jour UNIQUEMENT le compteur "En Direct"
