@@ -43,6 +43,39 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
 
         <div class="nexus-stats-bento-grid" id="nexus_stats_pdf_area">
 
+            <?php if(get_option('nexus_stats_narrative', 'yes') === 'yes'): ?>
+            <!-- Narrative Summary (Full Width) -->
+            <div class="nexus-stats-card nexus-stats-goal-card" style="background: linear-gradient(135deg, var(--nexus-stats-blue), var(--nexus-stats-emerald)); border: none; color: #fff;">
+                <div class="nexus-stats-card-body" style="padding: 24px;">
+                    <h3 style="margin:0 0 10px 0; font-size:18px; color: #fff;"><span class="dashicons dashicons-megaphone"></span> <?php esc_html_e('Résumé Automatique', 'nexus-stats-views'); ?></h3>
+                    <p style="margin:0; font-size:16px; font-weight:500; opacity: 0.9;" id="nexus_stats_narrative_text"><?php esc_html_e('Analyse en cours...', 'nexus-stats-views'); ?></p>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if(get_option('nexus_stats_health', 'yes') === 'yes'): ?>
+            <!-- Vitals / Health Widget -->
+            <div class="nexus-stats-card nexus-stats-goal-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-heart"></span> <?php esc_html_e('Santé & UX Core Vitals', 'nexus-stats-views'); ?>
+                </div>
+                <div class="nexus-stats-card-body" style="display:flex; justify-content:space-around; align-items:center;">
+                    <div style="text-align:center;">
+                        <div style="font-size:12px; color:var(--nexus-stats-text-muted); text-transform:uppercase;"><?php esc_html_e('Tps Chargement Moyen', 'nexus-stats-views'); ?></div>
+                        <div style="font-size:24px; font-weight:bold; color:var(--nexus-stats-text-main);"><span id="nexus_stats_vital_load">--</span> <span style="font-size:12px;">ms</span></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:12px; color:var(--nexus-stats-text-muted); text-transform:uppercase;"><?php esc_html_e('Scroll Depth Moyen', 'nexus-stats-views'); ?></div>
+                        <div style="font-size:24px; font-weight:bold; color:var(--nexus-stats-text-main);"><span id="nexus_stats_vital_scroll">--</span> <span style="font-size:12px;">%</span></div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:12px; color:var(--nexus-stats-text-muted); text-transform:uppercase;"><?php esc_html_e('Impact BDD Plugin', 'nexus-stats-views'); ?></div>
+                        <div style="font-size:24px; font-weight:bold; color:var(--nexus-stats-emerald);"><span id="nexus_stats_vital_db">--</span> <span style="font-size:12px;">ms</span></div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Goal Widget (Full Width) -->
             <div class="nexus-stats-card nexus-stats-goal-card">
                 <div class="nexus-stats-card-header">
@@ -160,6 +193,48 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
                     </ul>
                 </div>
             </div>
+
+            <?php if(get_option('nexus_stats_track_outbound', 'yes') === 'yes'): ?>
+            <!-- Top Outbound Links -->
+            <div class="nexus-stats-card nexus-stats-list-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-external"></span> <?php esc_html_e('Top Liens Sortants', 'nexus-stats-views'); ?>
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <ul class="nexus-stats-list" id="nexus_stats_top_outbounds">
+                        <li class="nexus-stats-list-item empty"><?php esc_html_e('Chargement...', 'nexus-stats-views'); ?></li>
+                    </ul>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if(get_option('nexus_stats_track_404', 'yes') === 'yes'): ?>
+            <!-- 404 Errors -->
+            <div class="nexus-stats-card nexus-stats-list-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-warning"></span> <?php esc_html_e('Erreurs 404', 'nexus-stats-views'); ?>
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <ul class="nexus-stats-list" id="nexus_stats_top_404">
+                        <li class="nexus-stats-list-item empty"><?php esc_html_e('Chargement...', 'nexus-stats-views'); ?></li>
+                    </ul>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if (class_exists('WooCommerce') && get_option('nexus_stats_woo_sync', 'yes') === 'yes'): ?>
+            <!-- WooCommerce Conversions -->
+            <div class="nexus-stats-card nexus-stats-goal-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-cart"></span> <?php esc_html_e('Conversions WooCommerce par Source', 'nexus-stats-views'); ?>
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <ul class="nexus-stats-list" id="nexus_stats_woo_sources">
+                        <li class="nexus-stats-list-item empty"><?php esc_html_e('Chargement...', 'nexus-stats-views'); ?></li>
+                    </ul>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- Top Content Lists -->
             <div class="nexus-stats-card nexus-stats-list-card">

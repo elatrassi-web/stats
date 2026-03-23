@@ -108,6 +108,41 @@ class Nexus_Stats_Admin {
             'default' => '',
             'sanitize_callback' => 'sanitize_text_field'
         ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_track_scroll', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_track_outbound', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_track_404', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_woo_sync', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_downtime_alerts', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_narrative', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_health', [
+            'type' => 'string',
+            'default' => 'yes',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
     }
 
     // --- Colonnes ---
@@ -318,6 +353,46 @@ class Nexus_Stats_Admin {
                                 Anonymisation stricte (Zéro Cookie)
                             </label>
                             <p class="description">N'utilise plus le LocalStorage. Génère un identifiant de session volatile uniquement. Vous exempte potentiellement du bandeau de consentement.</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Modules de Suivi (UX & Front-end)', 'nexus-stats-views'); ?></th>
+                        <td>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_track_scroll" value="yes" <?php checked(get_option('nexus_stats_track_scroll', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Suivre la profondeur de défilement (Scroll Depth 25-100%)', 'nexus-stats-views'); ?>
+                            </label>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_track_outbound" value="yes" <?php checked(get_option('nexus_stats_track_outbound', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Suivre les clics sur les liens sortants (Outbound Links)', 'nexus-stats-views'); ?>
+                            </label>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_track_404" value="yes" <?php checked(get_option('nexus_stats_track_404', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Détection Intelligente des Erreurs 404 (Liens cassés)', 'nexus-stats-views'); ?>
+                            </label>
+                            <?php if (class_exists('WooCommerce')): ?>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_woo_sync" value="yes" <?php checked(get_option('nexus_stats_woo_sync', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Module de Conversion WooCommerce (Lier le CA à la source de trafic)', 'nexus-stats-views'); ?>
+                            </label>
+                            <?php endif; ?>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_downtime_alerts" value="yes" <?php checked(get_option('nexus_stats_downtime_alerts', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Alertes de "Downtime" (M\'avertir si le trafic chute à 0 anormalement)', 'nexus-stats-views'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Widgets du Tableau de Bord', 'nexus-stats-views'); ?></th>
+                        <td>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_narrative" value="yes" <?php checked(get_option('nexus_stats_narrative', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Afficher le "Résumé Narratif" (Analyse automatisée)', 'nexus-stats-views'); ?>
+                            </label>
+                            <label style="display:block; margin-bottom:8px;">
+                                <input type="checkbox" name="nexus_stats_health" value="yes" <?php checked(get_option('nexus_stats_health', 'yes'), 'yes'); ?> />
+                                <?php esc_html_e('Afficher le widget "Santé & UX Core Vitals"', 'nexus-stats-views'); ?>
+                            </label>
                         </td>
                     </tr>
                     <tr valign="top">

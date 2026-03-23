@@ -234,6 +234,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 mainChart = new Chart(mainCtx, mainChartConfig);
 
+                // --- Update Narrative & Vitals ---
+                if (data.narrative) {
+                    const narrativeEl = document.getElementById('nexus_stats_narrative_text');
+                    if (narrativeEl) narrativeEl.innerText = data.narrative;
+                }
+
+                if (data.vitals) {
+                    const vitalLoad = document.getElementById('nexus_stats_vital_load');
+                    const vitalScroll = document.getElementById('nexus_stats_vital_scroll');
+                    const vitalDb = document.getElementById('nexus_stats_vital_db');
+                    if (vitalLoad) vitalLoad.innerText = data.vitals.avg_load > 0 ? formatNumber(data.vitals.avg_load) : '--';
+                    if (vitalScroll) vitalScroll.innerText = data.vitals.avg_scroll > 0 ? data.vitals.avg_scroll : '--';
+                    if (vitalDb) vitalDb.innerText = data.vitals.db_time;
+                }
+
                 // --- Update Goal Widget ---
                 const goal = data.monthly_goal || 1;
                 const currentViews = data.monthly_views || 0;
@@ -418,6 +433,23 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <span class="nexus-stats-list-link" style="text-transform:uppercase;">${item.browser_lang}</span>
                                 <span class="nexus-stats-badge emerald">${formatNumber(item.count)}</span>
                             </li>`;
+                        } else if (type === 'outbound' || type === '404') {
+                            const url = type === 'outbound' ? item.target_url : item.requested_url;
+                            const count = type === 'outbound' ? item.click_count : item.hit_count;
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <span class="nexus-stats-list-link" style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${url}</span>
+                                <span class="nexus-stats-badge ${type === '404' ? 'red' : 'emerald'}">${formatNumber(count)}</span>
+                            </li>`;
+                        } else if (type === 'woo') {
+                            html += `
+                            <li class="nexus-stats-list-item">
+                                <span class="nexus-stats-list-link" style="text-transform:capitalize;">${item.referrer_type}</span>
+                                <div class="nexus-stats-list-meta">
+                                    <span class="nexus-stats-read-time" title="Commandes"><span class="dashicons dashicons-cart"></span> ${item.orders}</span>
+                                    <span class="nexus-stats-badge emerald">${formatNumber(item.revenue)}</span>
+                                </div>
+                            </li>`;
                         }
                     });
                     return html;
@@ -428,6 +460,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (document.getElementById('nexus_stats_top_referrers')) document.getElementById('nexus_stats_top_referrers').innerHTML = createListHtml(data.referrers, 'referrer');
                 if (document.getElementById('nexus_stats_top_countries')) document.getElementById('nexus_stats_top_countries').innerHTML = createListHtml(data.countries, 'country');
                 if (document.getElementById('nexus_stats_top_languages')) document.getElementById('nexus_stats_top_languages').innerHTML = createListHtml(data.languages, 'lang');
+                if (document.getElementById('nexus_stats_top_outbounds')) document.getElementById('nexus_stats_top_outbounds').innerHTML = createListHtml(data.outbounds, 'outbound');
+                if (document.getElementById('nexus_stats_top_404')) document.getElementById('nexus_stats_top_404').innerHTML = createListHtml(data.errors_404, '404');
+                if (document.getElementById('nexus_stats_woo_sources') && data.woo) document.getElementById('nexus_stats_woo_sources').innerHTML = createListHtml(data.woo.sources, 'woo');
             }
         })
         .catch(err => console.error("Erreur chargement Dashboard Nexus Stats:", err));

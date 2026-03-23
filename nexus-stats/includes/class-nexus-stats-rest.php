@@ -63,6 +63,20 @@ class Nexus_Stats_REST {
             'permission_callback' => '__return_true',
         ]);
 
+        // Advanced Metrics Tracking (Scroll & Load Time)
+        register_rest_route('nexus-stats/v1', '/metrics/update', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'update_advanced_metrics'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        // Outbound Link Tracking
+        register_rest_route('nexus-stats/v1', '/outbound/track', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'track_outbound_link'],
+            'permission_callback' => '__return_true',
+        ]);
+
         // Heatmap Data (Admin only)
         register_rest_route('nexus-stats/v1', '/clicks/data', [
             'methods'  => 'GET',
@@ -135,6 +149,26 @@ class Nexus_Stats_REST {
 
         if ($post_id > 0 && $visitor_id && $read_time > 0) {
             Nexus_Stats_DB::update_read_time($post_id, $visitor_id, $read_time);
+        }
+        return rest_ensure_response(['success' => true]);
+    }
+
+    public static function update_advanced_metrics(WP_REST_Request $request) {
+        $post_id    = intval($request->get_param('post_id'));
+        $visitor_id = sanitize_text_field($request->get_param('visitor_id'));
+        $scroll     = intval($request->get_param('scroll'));
+        $load_time  = intval($request->get_param('load_time'));
+
+        if ($post_id > 0 && $visitor_id) {
+            Nexus_Stats_DB::update_metrics($post_id, $visitor_id, $scroll, $load_time);
+        }
+        return rest_ensure_response(['success' => true]);
+    }
+
+    public static function track_outbound_link(WP_REST_Request $request) {
+        $url = sanitize_text_field($request->get_param('url'));
+        if (!empty($url)) {
+            Nexus_Stats_DB::track_outbound($url);
         }
         return rest_ensure_response(['success' => true]);
     }
@@ -360,6 +394,59 @@ class Nexus_Stats_REST {
             WHERE view_datetime >= %s
         ", $month_start));
 
+        // Narrative Summary logic
+        $prev_month_start = date('Y-m-01 00:00:00', strtotime('first day of last month'));
+        $prev_month_end   = date('Y-m-t 23:59:59', strtotime('last day of last month'));
+
+        $prev_month_views = (int) $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(id) FROM $table_name
+            WHERE view_datetime >= %s AND view_datetime <= %s
+        ", $prev_month_start, $prev_month_end));
+
+        $delta = 0;
+        if ($prev_month_views > 0) {
+            $delta = round((($month_views - $prev_month_views) / $prev_month_views) * 100);
+        }
+
+        $top_source_obj = $wpdb->get_row($wpdb->prepare("
+            SELECT referrer_type, COUNT(id) as count
+            FROM $table_name
+            WHERE view_datetime >= %s
+            GROUP BY referrer_type
+            ORDER BY count DESC LIMIT 1
+        ", $month_start));
+        $top_source = $top_source_obj ? $top_source_obj->referrer_type : 'direct';
+
+        $narrative = "Pas assez de données pour générer un résumé.";
+        if ($month_views > 0 && $prev_month_views > 0) {
+            $direction = $delta >= 0 ? "augmenté" : "baissé";
+            $narrative = sprintf(
+                "Votre trafic a %s de %s%% ce mois-ci par rapport au mois dernier. Votre canal d'acquisition le plus fort est actuellement le trafic '%s'.",
+                $direction,
+                abs($delta),
+                ucfirst($top_source)
+            );
+        }
+
+        // Additional Modules Data (404s, Outbounds, WooCommerce, Vitals)
+        $avg_load = $wpdb->get_var($wpdb->prepare("SELECT AVG(load_time_ms) FROM $table_name WHERE view_datetime >= %s AND view_datetime <= %s AND load_time_ms > 0", $start_date, $end_date));
+        $avg_scroll = $wpdb->get_var($wpdb->prepare("SELECT AVG(scroll_depth) FROM $table_name WHERE view_datetime >= %s AND view_datetime <= %s AND scroll_depth > 0", $start_date, $end_date));
+        $avg_db_time = get_option('nexus_stats_avg_query_time', 0);
+
+        $table_404 = $wpdb->prefix . 'nexus_stats_404';
+        $errors_404 = $wpdb->get_results("SELECT requested_url, hit_count FROM $table_404 ORDER BY hit_count DESC LIMIT 5");
+
+        $table_outbound = $wpdb->prefix . 'nexus_stats_outbound';
+        $outbounds = $wpdb->get_results("SELECT target_url, click_count FROM $table_outbound ORDER BY click_count DESC LIMIT 5");
+
+        $woo_revenue = 0;
+        $woo_sources = [];
+        if (class_exists('WooCommerce')) {
+            $table_woo = $wpdb->prefix . 'nexus_stats_woo';
+            $woo_revenue = (float) $wpdb->get_var($wpdb->prepare("SELECT SUM(order_total) FROM $table_woo WHERE order_date >= %s AND order_date <= %s", $start_date, $end_date));
+            $woo_sources = $wpdb->get_results($wpdb->prepare("SELECT referrer_type, SUM(order_total) as revenue, COUNT(id) as orders FROM $table_woo WHERE order_date >= %s AND order_date <= %s GROUP BY referrer_type ORDER BY revenue DESC", $start_date, $end_date));
+        }
+
         // Sources (Categories)
         $sources = $wpdb->get_results($wpdb->prepare("
             SELECT referrer_type, COUNT(id) as count
@@ -446,7 +533,19 @@ class Nexus_Stats_REST {
                 'top_pages'      => self::get_top_content('page', $start_date, $end_date),
                 'annotations'    => $annotations,
                 'monthly_goal'   => $monthly_goal,
-                'monthly_views'  => (int)$month_views
+                'monthly_views'  => (int)$month_views,
+                'narrative'      => $narrative,
+                'vitals'         => [
+                    'avg_load'   => round((float)$avg_load),
+                    'avg_scroll' => round((float)$avg_scroll),
+                    'db_time'    => round((float)$avg_db_time, 2)
+                ],
+                'errors_404'     => $errors_404,
+                'outbounds'      => $outbounds,
+                'woo'            => [
+                    'revenue' => $woo_revenue,
+                    'sources' => $woo_sources
+                ]
             ]
         ]);
     }

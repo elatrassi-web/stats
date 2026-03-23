@@ -22,6 +22,8 @@ class Nexus_Stats_Public {
                 'refreshRate' => (int)$refresh_rate * 1000,
                 'ecoMode' => $eco_mode,
                 'gdprStrict' => $gdpr_strict,
+                'trackScroll' => get_option('nexus_stats_track_scroll', 'yes'),
+                'trackOutbound' => get_option('nexus_stats_track_outbound', 'yes'),
                 'nonce' => wp_create_nonce('wp_rest') // Pour l'API REST
             ]);
 

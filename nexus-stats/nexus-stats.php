@@ -18,6 +18,7 @@ define('NEXUS_STATS_VIEWS_URL', plugin_dir_url(__FILE__));
 // Charger les classes
 require_once NEXUS_STATS_VIEWS_DIR . 'includes/class-nexus-stats-db.php';
 require_once NEXUS_STATS_VIEWS_DIR . 'includes/class-nexus-stats-rest.php';
+require_once NEXUS_STATS_VIEWS_DIR . 'includes/class-nexus-stats-hooks.php';
 require_once NEXUS_STATS_VIEWS_DIR . 'admin/class-nexus-stats-admin.php';
 require_once NEXUS_STATS_VIEWS_DIR . 'public/class-nexus-stats-public.php';
 
@@ -26,13 +27,26 @@ function nexus_stats_views_init() {
     load_plugin_textdomain('nexus-stats-views', false, dirname(plugin_basename(__FILE__)) . '/languages');
     Nexus_Stats_DB::init();
     Nexus_Stats_REST::init();
+    Nexus_Stats_Hooks::init();
     Nexus_Stats_Admin::init();
     Nexus_Stats_Public::init();
 }
 add_action('plugins_loaded', 'nexus_stats_views_init');
 
-// Activation (Création des tables)
-register_activation_hook(__FILE__, ['Nexus_Stats_DB', 'create_tables']);
+// Activation (Création des tables & Cron)
+register_activation_hook(__FILE__, 'nexus_stats_views_activate');
+function nexus_stats_views_activate() {
+    Nexus_Stats_DB::create_tables();
+    if (!wp_next_scheduled('nexus_stats_downtime_check')) {
+        wp_schedule_event(time(), 'hourly', 'nexus_stats_downtime_check');
+    }
+}
+
+// Deactivation (Cron)
+register_deactivation_hook(__FILE__, 'nexus_stats_views_deactivate');
+function nexus_stats_views_deactivate() {
+    wp_clear_scheduled_hook('nexus_stats_downtime_check');
+}
 
 // Cacher les notifications indésirables (héritage de l'ancienne version)
 add_action('admin_head', 'nexus_stats_hide_annoying_notices');

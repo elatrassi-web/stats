@@ -58,6 +58,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 referrer: document.referrer || ''
             });
         }
+
+        // Capter le temps de chargement une seule fois après la vue
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                let loadTime = 0;
+                if (window.performance && performance.getEntriesByType) {
+                    const navEntries = performance.getEntriesByType("navigation");
+                    if (navEntries.length > 0) {
+                        loadTime = Math.round(navEntries[0].loadEventEnd);
+                    }
+                }
+                if (loadTime > 0) {
+                    sendPostRequest('/metrics/update', { post_id: postID, visitor_id: vid, load_time: loadTime, scroll: 0 });
+                }
+            }, 500);
+        });
     }
 
     // 4. TRACKING EN DIRECT (Heartbeat)
@@ -102,7 +118,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 7. HEATMAP: TRACKING DES CLICS (A et BUTTON)
+    // 7. TRACKING DES LIENS SORTANTS
+    if (data.trackOutbound === 'yes') {
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a');
+            if (target && target.href && !target.href.includes(window.location.hostname)) {
+                // Outbound link clicked, use sendBeacon for reliability
+                const beaconUrl = restUrl + '/outbound/track';
+                const payload = JSON.stringify({ url: target.href });
+                const blob = new Blob([payload], { type: 'application/json' });
+                navigator.sendBeacon(beaconUrl, blob);
+            }
+        });
+    }
+
+    // 8. TRACKING SCROLL DEPTH
+    if (data.trackScroll === 'yes') {
+        let maxScroll = 0;
+        let lastReportedScroll = 0;
+        let debounceTimer;
+
+        window.addEventListener('scroll', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                const scrollHeight = document.documentElement.scrollHeight;
+                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                const clientHeight = document.documentElement.clientHeight;
+
+                const percent = Math.round((scrollTop + clientHeight) / scrollHeight * 100);
+
+                if (percent > maxScroll) {
+                    maxScroll = percent;
+                    let toReport = 0;
+                    if (maxScroll >= 25 && lastReportedScroll < 25) toReport = 25;
+                    else if (maxScroll >= 50 && lastReportedScroll < 50) toReport = 50;
+                    else if (maxScroll >= 75 && lastReportedScroll < 75) toReport = 75;
+                    else if (maxScroll >= 100 && lastReportedScroll < 100) toReport = 100;
+
+                    if (toReport > 0) {
+                        lastReportedScroll = toReport;
+                        sendPostRequest('/metrics/update', { post_id: postID, visitor_id: vid, scroll: toReport, load_time: 0 });
+                    }
+                }
+            }, 500);
+        });
+    }
+
+    // 9. HEATMAP: TRACKING DES CLICS (A et BUTTON)
     document.addEventListener('click', function(e) {
         const target = e.target.closest('a, button');
         if (target) {

@@ -19,6 +19,8 @@ class Nexus_Stats_DB {
             view_datetime datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             device_type varchar(10) DEFAULT 'desktop',
             read_time_seconds int(11) DEFAULT 0,
+            scroll_depth int(3) DEFAULT 0,
+            load_time_ms int(11) DEFAULT 0,
             referrer_type varchar(20) DEFAULT 'direct',
             referrer_domain varchar(100) DEFAULT '',
             country_code varchar(2) DEFAULT 'XX',
@@ -71,12 +73,65 @@ class Nexus_Stats_DB {
             PRIMARY KEY  (ip_hash)
         ) $charset_collate;";
 
+        // Table 6 : Outbound Links
+        $table_outbound = $wpdb->prefix . 'nexus_stats_outbound';
+        $sql6 = "CREATE TABLE $table_outbound (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            target_url varchar(255) NOT NULL,
+            click_count bigint(20) DEFAULT 1,
+            last_clicked datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY target_url (target_url(191))
+        ) $charset_collate;";
+
+        // Table 7 : 404 Errors
+        $table_404 = $wpdb->prefix . 'nexus_stats_404';
+        $sql7 = "CREATE TABLE $table_404 (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            requested_url varchar(255) NOT NULL,
+            referer_url varchar(255) DEFAULT '',
+            hit_count bigint(20) DEFAULT 1,
+            last_hit datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY requested_url (requested_url(191))
+        ) $charset_collate;";
+
+        // Table 8 : WooCommerce Conversions
+        $table_woo = $wpdb->prefix . 'nexus_stats_woo';
+        $sql8 = "CREATE TABLE $table_woo (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            order_id bigint(20) NOT NULL,
+            referrer_type varchar(20) NOT NULL,
+            order_total decimal(10,2) DEFAULT 0.00,
+            order_date datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY order_id (order_id)
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql1);
         dbDelta($sql2);
         dbDelta($sql3);
         dbDelta($sql4);
         dbDelta($sql5);
+        dbDelta($sql6);
+        dbDelta($sql7);
+        dbDelta($sql8);
+    }
+
+    // Static Query Timer
+    public static $query_time = 0;
+
+    // Helper : Save rolling average of query time
+    private static function save_query_time_average($time_ms) {
+        $avg = get_option('nexus_stats_avg_query_time', 0);
+        if ($avg == 0) {
+            $new_avg = $time_ms;
+        } else {
+            // Rolling average (weighting recent queries slightly more)
+            $new_avg = ($avg * 0.9) + ($time_ms * 0.1);
+        }
+        update_option('nexus_stats_avg_query_time', $new_avg, false);
     }
 
     // Helper : Get Country Code safely (RGPD+)
@@ -152,6 +207,8 @@ class Nexus_Stats_DB {
         $lang_code = strtolower(substr($lang, 0, 2));
 
         $wpdb->suppress_errors = true;
+        $start_time = microtime(true);
+
         $wpdb->insert($table_log, array(
             'post_id'       => $post_id,
             'visitor_id'    => $visitor_id,
@@ -163,9 +220,54 @@ class Nexus_Stats_DB {
             'browser_lang'  => $lang_code
         ));
 
+        self::$query_time += (microtime(true) - $start_time) * 1000;
+        self::save_query_time_average(self::$query_time);
+
         $current_views = (int) get_post_meta($post_id, 'nexus_stats_view_count', true);
         update_post_meta($post_id, 'nexus_stats_view_count', $current_views + 1);
-        return true;
+
+        return ['success' => true, 'source' => $source['type']];
+    }
+
+    // Helper : Update advanced metrics (Scroll & Load Time)
+    public static function update_metrics($post_id, $visitor_id, $scroll, $load_time) {
+        global $wpdb;
+        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
+        $start_time = microtime(true);
+
+        $last_view = $wpdb->get_var($wpdb->prepare("
+            SELECT id FROM $table_log
+            WHERE post_id = %d AND visitor_id = %s AND view_datetime >= (CURRENT_TIMESTAMP - INTERVAL 1 HOUR)
+            ORDER BY view_datetime DESC LIMIT 1
+        ", $post_id, $visitor_id));
+
+        if ($last_view) {
+            $update_data = [];
+            if ($scroll > 0) $update_data['scroll_depth'] = $scroll;
+            if ($load_time > 0) $update_data['load_time_ms'] = $load_time;
+
+            if (!empty($update_data)) {
+                $wpdb->update($table_log, $update_data, ['id' => $last_view]);
+            }
+        }
+        self::$query_time += (microtime(true) - $start_time) * 1000;
+        self::save_query_time_average(self::$query_time);
+    }
+
+    // Helper : Track Outbound Link
+    public static function track_outbound($url) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'nexus_stats_outbound';
+        $start_time = microtime(true);
+
+        $url = substr($url, 0, 191);
+        $wpdb->query($wpdb->prepare("
+            INSERT INTO $table (target_url, click_count, last_clicked)
+            VALUES (%s, 1, CURRENT_TIMESTAMP)
+            ON DUPLICATE KEY UPDATE click_count = click_count + 1, last_clicked = CURRENT_TIMESTAMP
+        ", $url));
+
+        self::$query_time += (microtime(true) - $start_time) * 1000;
     }
 
     // Helper : Update read time
