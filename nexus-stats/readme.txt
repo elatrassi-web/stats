@@ -4,7 +4,7 @@ Donate link: https://www.linkedin.com/in/elatrassi/
 Tags: analytics, statistics, visitors, heatmap, tracking
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 6.0
+Stable tag: 1.0.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -54,7 +54,7 @@ Dans les réglages du plugin, définissez un "Jeton de partage" (ex: `monclient2
 
 == Changelog ==
 
-= 6.0 =
+= 1.0.0 =
 * Lancement initial de "Nexus Stats" (Refonte totale de l'ancien plugin My Angers).
 * Nouvelle architecture modulaire MVC.
 * Interface d'administration totalement repensée (Bento Grid, Dark/Light Mode).

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Nexus Stats
  * Description: Statistiques avancées : Compteur AJAX, Visiteurs uniques, Tableau de bord complet et Suivi des Visiteurs EN DIRECT (Version Sécurisée Anti-Crash). Refonte 2026.
- * Version: 6.0
+ * Version: 1.0.0
  * Author: Mohamed El Atrassi
  * Author URI: https://www.linkedin.com/in/elatrassi/
  * Text Domain: nexus-stats
@@ -12,7 +12,7 @@
 
 if (!defined('ABSPATH')) exit; // Sécurité
 
-define('NEXUS_STATS_VIEWS_VERSION', '6.0');
+define('NEXUS_STATS_VIEWS_VERSION', '1.0.0');
 define('NEXUS_STATS_VIEWS_DIR', plugin_dir_path(__FILE__));
 define('NEXUS_STATS_VIEWS_URL', plugin_dir_url(__FILE__));
 
