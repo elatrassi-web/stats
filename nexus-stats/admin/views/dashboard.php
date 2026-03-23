@@ -1,4 +1,8 @@
-<div class="wrap nexus-stats-wrap">
+<?php
+$theme = get_option('nexus_stats_theme', 'dark');
+$theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-theme-dark';
+?>
+<div class="wrap nexus-stats-wrap <?php echo esc_attr($theme_class); ?>">
     <div class="nexus-stats-container">
 
         <div class="nexus-stats-header">

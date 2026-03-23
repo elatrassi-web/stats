@@ -20,9 +20,20 @@ document.addEventListener("DOMContentLoaded", function() {
     const filterSelect = document.getElementById('nexus_stats_time_filter');
     const switcherBtns = document.querySelectorAll('.switcher-btn');
 
-    // Configuration globale Chart.js pour le Dark Mode
-    Chart.defaults.color = '#a0a0a0';
+    const theme = nexusStatsAdminData.theme || 'dark';
+    const isDark = theme === 'dark';
+
+    // Configuration globale Chart.js
+    Chart.defaults.color = isDark ? '#a0a0a0' : '#646970';
     Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+    const emeraldColor = isDark ? '#00ff88' : '#00a32a';
+    const emeraldColorBg = isDark ? 'rgba(0, 255, 136, 0.1)' : 'rgba(0, 163, 42, 0.1)';
+    const pointColor = isDark ? '#121212' : '#ffffff';
+    const tooltipBg = isDark ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+    const tooltipTitle = isDark ? '#ffffff' : '#2c3338';
+    const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
     // Fonction de formatage (1 000 au lieu de 1000)
     const formatNumber = (num) => {
@@ -68,16 +79,16 @@ document.addEventListener("DOMContentLoaded", function() {
                         datasets: [{
                             label: 'Vues',
                             data: data.chart_values,
-                            backgroundColor: currentChartType === 'line' ? 'rgba(0, 255, 136, 0.1)' : '#00ff88',
-                            borderColor: '#00ff88',
+                            backgroundColor: currentChartType === 'line' ? emeraldColorBg : emeraldColor,
+                            borderColor: emeraldColor,
                             borderWidth: 2,
                             fill: currentChartType === 'line', // Remplir sous la ligne
                             tension: 0.4, // Courbe douce
                             borderRadius: currentChartType === 'bar' ? 4 : 0,
-                            pointBackgroundColor: '#121212',
-                            pointBorderColor: '#00ff88',
-                            pointHoverBackgroundColor: '#00ff88',
-                            pointHoverBorderColor: '#fff',
+                            pointBackgroundColor: pointColor,
+                            pointBorderColor: emeraldColor,
+                            pointHoverBackgroundColor: emeraldColor,
+                            pointHoverBorderColor: pointColor,
                             pointRadius: currentChartType === 'line' ? 3 : 0,
                             pointHoverRadius: 6
                         }]
@@ -90,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             y: {
                                 beginAtZero: true,
                                 ticks: { stepSize: 1, precision: 0 },
-                                grid: { color: 'rgba(255, 255, 255, 0.05)', borderDash: [5, 5] },
+                                grid: { color: gridColor, borderDash: [5, 5] },
                                 border: { display: false }
                             },
                             x: {
@@ -101,11 +112,11 @@ document.addEventListener("DOMContentLoaded", function() {
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(18, 18, 18, 0.9)',
-                                titleColor: '#fff',
-                                bodyColor: '#00ff88',
+                                backgroundColor: tooltipBg,
+                                titleColor: tooltipTitle,
+                                bodyColor: emeraldColor,
                                 padding: 12,
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderColor: tooltipBorder,
                                 borderWidth: 1,
                                 cornerRadius: 8
                             }
@@ -128,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             labels: ['Mobile', 'Desktop'],
                             datasets: [{
                                 data: hasDeviceData ? [mobileCount, desktopCount] : [1, 1], // Fake data si vide pour montrer l'anneau
-                                backgroundColor: hasDeviceData ? ['#0088ff', '#00ff88'] : ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.05)'],
+                                backgroundColor: hasDeviceData ? [isDark ? '#0088ff' : '#2271b1', emeraldColor] : [gridColor, gridColor],
                                 hoverOffset: 4,
                                 borderWidth: 0,
                                 cutout: '75%'

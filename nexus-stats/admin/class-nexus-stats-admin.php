@@ -40,11 +40,13 @@ class Nexus_Stats_Admin {
             wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js'], NEXUS_STATS_VIEWS_VERSION, true);
 
             $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
+            $theme = get_option('nexus_stats_theme', 'dark');
 
             wp_localize_script('nexus-stats-admin-js', 'nexusStatsAdminData', [
                 'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
                 'nonce' => wp_create_nonce('wp_rest'),
-                'refreshRate' => (int)$refresh_rate * 1000
+                'refreshRate' => (int)$refresh_rate * 1000,
+                'theme' => sanitize_text_field($theme)
             ]);
         }
     }
@@ -58,6 +60,11 @@ class Nexus_Stats_Admin {
         register_setting('nexus_stats_settings_group', 'nexus_stats_eco_mode', [
             'type' => 'string',
             'default' => 'no',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_theme', [
+            'type' => 'string',
+            'default' => 'dark',
             'sanitize_callback' => 'sanitize_text_field'
         ]);
     }
@@ -184,6 +191,15 @@ class Nexus_Stats_Admin {
                 <?php settings_fields('nexus_stats_settings_group'); ?>
                 <?php do_settings_sections('nexus_stats_settings_group'); ?>
                 <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">Thème d'affichage</th>
+                        <td>
+                            <select name="nexus_stats_theme">
+                                <option value="dark" <?php selected(get_option('nexus_stats_theme', 'dark'), 'dark'); ?>>Mode Sombre (Dark Theme)</option>
+                                <option value="light" <?php selected(get_option('nexus_stats_theme', 'dark'), 'light'); ?>>Mode Clair (Light Theme)</option>
+                            </select>
+                        </td>
+                    </tr>
                     <tr valign="top">
                         <th scope="row">Délai d'actualisation En Direct (secondes)</th>
                         <td>

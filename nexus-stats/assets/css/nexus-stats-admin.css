@@ -1,7 +1,12 @@
 /* ==========================================================================
- * Variables CSS (Thème Dark par défaut - Accents Émeraude & Bleu Électrique)
+ * Variables CSS (Thèmes Dark et Light - Accents Émeraude & Bleu Électrique)
  * ========================================================================== */
  :root {
+    --nexus-stats-radius: 16px;
+    --nexus-stats-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nexus-stats-theme-dark {
     --nexus-stats-bg: #121212;
     --nexus-stats-card-bg: rgba(26, 26, 26, 0.7); /* Glassmorphism Base */
     --nexus-stats-card-border: rgba(255, 255, 255, 0.08);
@@ -12,8 +17,25 @@
     --nexus-stats-emerald-glow: rgba(0, 255, 136, 0.3);
     --nexus-stats-blue: #0088ff;
 
-    --nexus-stats-radius: 16px;
-    --nexus-stats-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --nexus-stats-badge-bg: rgba(255,255,255,0.05);
+    --nexus-stats-badge-border: rgba(255,255,255,0.1);
+    --nexus-stats-hover-bg: rgba(255,255,255,0.02);
+}
+
+.nexus-stats-theme-light {
+    --nexus-stats-bg: #f5f7fa;
+    --nexus-stats-card-bg: rgba(255, 255, 255, 0.85); /* Glassmorphism Base */
+    --nexus-stats-card-border: rgba(0, 0, 0, 0.06);
+    --nexus-stats-text-main: #2c3338;
+    --nexus-stats-text-muted: #646970;
+
+    --nexus-stats-emerald: #00a32a;
+    --nexus-stats-emerald-glow: rgba(0, 163, 42, 0.2);
+    --nexus-stats-blue: #2271b1;
+
+    --nexus-stats-badge-bg: rgba(0,0,0,0.03);
+    --nexus-stats-badge-border: rgba(0,0,0,0.06);
+    --nexus-stats-hover-bg: rgba(0,0,0,0.02);
 }
 
 /* ==========================================================================
@@ -215,7 +237,7 @@
 }
 .chart-switcher {
     display: flex;
-    background: rgba(0,0,0,0.3);
+    background: var(--nexus-stats-badge-bg);
     border-radius: 6px;
     padding: 2px;
 }
@@ -256,7 +278,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--nexus-stats-card-border);
     transition: background 0.2s;
 }
 
@@ -265,7 +287,7 @@
 }
 
 .nexus-stats-list-item:hover {
-    background: rgba(255,255,255,0.02);
+    background: var(--nexus-stats-hover-bg);
 }
 
 .nexus-stats-list-item.empty {
@@ -297,19 +319,19 @@
 }
 
 .nexus-stats-badge {
-    background: rgba(255,255,255,0.05);
+    background: var(--nexus-stats-badge-bg);
     color: var(--nexus-stats-text-main);
     padding: 4px 10px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid var(--nexus-stats-badge-border);
 }
 
 .nexus-stats-badge.emerald {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--nexus-stats-emerald-glow);
     color: var(--nexus-stats-emerald);
-    border-color: rgba(0, 255, 136, 0.2);
+    border-color: transparent;
 }
 
 .nexus-stats-read-time {
