@@ -35,9 +35,32 @@ class Nexus_Stats_DB {
             KEY last_ping (last_ping)
         ) $charset_collate;";
 
+        // Table 3 : Annotations (Graphique)
+        $table_annotations = $wpdb->prefix . 'nexus_stats_annotations';
+        $sql3 = "CREATE TABLE $table_annotations (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            note_date date NOT NULL,
+            note_text varchar(255) NOT NULL,
+            PRIMARY KEY  (id),
+            KEY note_date (note_date)
+        ) $charset_collate;";
+
+        // Table 4 : Heatmap Clicks
+        $table_clicks = $wpdb->prefix . 'nexus_stats_clicks';
+        $sql4 = "CREATE TABLE $table_clicks (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            post_id bigint(20) NOT NULL,
+            element_selector varchar(255) NOT NULL,
+            click_count bigint(20) DEFAULT 1,
+            PRIMARY KEY  (id),
+            UNIQUE KEY post_selector (post_id, element_selector(191))
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql1);
         dbDelta($sql2);
+        dbDelta($sql3);
+        dbDelta($sql4);
     }
 
     // Helper : Track a view

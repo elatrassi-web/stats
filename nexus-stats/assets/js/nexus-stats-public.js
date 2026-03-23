@@ -12,11 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. Détection de l'appareil (très simple)
     const device = window.innerWidth <= 768 ? 'mobile' : 'desktop';
 
-    // 2. Gestion de l'ID Visiteur
-    let vid = localStorage.getItem('nexus_stats_visitor_id');
-    if (!vid) {
-        vid = 'vid_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-        localStorage.setItem('nexus_stats_visitor_id', vid);
+    // 2. Gestion de l'ID Visiteur (RGPD Strict = Pas de LocalStorage)
+    let vid;
+    if (data.gdprStrict === 'yes') {
+        vid = sessionStorage.getItem('nexus_stats_visitor_id');
+        if (!vid) {
+            vid = 'anon_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            sessionStorage.setItem('nexus_stats_visitor_id', vid);
+        }
+    } else {
+        vid = localStorage.getItem('nexus_stats_visitor_id');
+        if (!vid) {
+            vid = 'vid_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            localStorage.setItem('nexus_stats_visitor_id', vid);
+        }
     }
 
     // Fonction utilitaire pour envoyer des requêtes POST fetch
@@ -89,6 +98,31 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mais notre endpoint est ouvert (__return_true)
             const blob = new Blob([payload], { type: 'application/json' });
             navigator.sendBeacon(beaconUrl, blob);
+        }
+    });
+
+    // 7. HEATMAP: TRACKING DES CLICS (A et BUTTON)
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a, button');
+        if (target) {
+            // Générer un sélecteur CSS simple pour identifier l'élément
+            let selector = target.tagName.toLowerCase();
+            if (target.id) {
+                selector += '#' + target.id;
+            } else if (target.className) {
+                selector += '.' + target.className.trim().replace(/\s+/g, '.');
+            } else if (target.href) {
+                // Pour les liens sans classe, on utilise le href
+                selector += '[href="' + target.getAttribute('href') + '"]';
+            } else if (target.innerText) {
+                // Dernier recours: le texte
+                selector += ':contains("' + target.innerText.substring(0, 15).trim() + '")';
+            }
+
+            sendPostRequest('/clicks/track', {
+                post_id: postID,
+                selector: selector
+            });
         }
     });
 });

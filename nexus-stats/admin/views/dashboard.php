@@ -29,7 +29,24 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
             </div>
         </div>
 
-        <div class="nexus-stats-bento-grid">
+        <div class="nexus-stats-header-actions">
+            <button id="nexus_stats_export_pdf" class="nexus-stats-btn"><span class="dashicons dashicons-media-document"></span> Exporter PDF</button>
+            <button id="nexus_stats_cleanup_ghosts" class="nexus-stats-btn" style="background:var(--nexus-stats-blue);"><span class="dashicons dashicons-shield"></span> Nettoyer Stats</button>
+        </div>
+
+        <div class="nexus-stats-bento-grid" id="nexus_stats_pdf_area">
+
+            <!-- Goal Widget (Full Width) -->
+            <div class="nexus-stats-card nexus-stats-goal-card">
+                <div class="nexus-stats-card-header">
+                    <span class="dashicons dashicons-flag"></span> Objectif Mensuel : <span id="nexus_stats_goal_text">--</span>
+                </div>
+                <div class="nexus-stats-card-body p-0">
+                    <div class="nexus-stats-progress-wrapper">
+                        <div id="nexus_stats_goal_bar" class="nexus-stats-progress-bar"></div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Cards (Metrics) -->
             <div class="nexus-stats-card nexus-stats-metric-card">
@@ -63,6 +80,13 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
             <div class="nexus-stats-card nexus-stats-chart-card">
                 <div class="nexus-stats-card-header chart-header-actions">
                     <span><span class="dashicons dashicons-chart-area"></span> Évolution des vues</span>
+
+                    <div class="nexus-stats-annotation-form">
+                        <input type="date" id="nexus_stats_annot_date" class="nexus-stats-input-mini" title="Date de la note">
+                        <input type="text" id="nexus_stats_annot_text" class="nexus-stats-input-mini" placeholder="Lancement..." title="Texte de la note">
+                        <button id="nexus_stats_add_annotation" class="nexus-stats-btn-mini" title="Ajouter la note">+</button>
+                    </div>
+
                     <div class="chart-switcher">
                         <button class="switcher-btn active" data-type="line" title="Tendance"><span class="dashicons dashicons-chart-line"></span></button>
                         <button class="switcher-btn" data-type="bar" title="Comparaison"><span class="dashicons dashicons-chart-bar"></span></button>

@@ -55,6 +55,34 @@ class Nexus_Stats_REST {
             'callback' => [__CLASS__, 'update_theme'],
             'permission_callback' => [__CLASS__, 'check_admin_permissions'],
         ]);
+
+        // Clicks Tracking (Public)
+        register_rest_route('nexus-stats/v1', '/clicks/track', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'track_click'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        // Heatmap Data (Admin only)
+        register_rest_route('nexus-stats/v1', '/clicks/data', [
+            'methods'  => 'GET',
+            'callback' => [__CLASS__, 'get_heatmap_data'],
+            'permission_callback' => [__CLASS__, 'check_admin_permissions'],
+        ]);
+
+        // Annotations (Admin only)
+        register_rest_route('nexus-stats/v1', '/annotations', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'add_annotation'],
+            'permission_callback' => [__CLASS__, 'check_admin_permissions'],
+        ]);
+
+        // Cleanup Ghost Traffic (Admin only)
+        register_rest_route('nexus-stats/v1', '/cleanup', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'cleanup_ghost_traffic'],
+            'permission_callback' => [__CLASS__, 'check_admin_permissions'],
+        ]);
     }
 
     public static function check_admin_permissions() {
@@ -113,6 +141,77 @@ class Nexus_Stats_REST {
             Nexus_Stats_DB::live_exit($visitor_id);
         }
         return rest_ensure_response(['success' => true]);
+    }
+
+    public static function track_click(WP_REST_Request $request) {
+        $post_id  = intval($request->get_param('post_id'));
+        $selector = sanitize_text_field($request->get_param('selector'));
+
+        if ($post_id > 0 && !empty($selector)) {
+            global $wpdb;
+            $table = $wpdb->prefix . 'nexus_stats_clicks';
+            // Limit selector length to match DB
+            $selector = substr($selector, 0, 191);
+            $wpdb->query($wpdb->prepare("
+                INSERT INTO $table (post_id, element_selector)
+                VALUES (%d, %s)
+                ON DUPLICATE KEY UPDATE click_count = click_count + 1
+            ", $post_id, $selector));
+        }
+        return rest_ensure_response(['success' => true]);
+    }
+
+    public static function get_heatmap_data(WP_REST_Request $request) {
+        $post_id = intval($request->get_param('post_id'));
+        global $wpdb;
+        $table = $wpdb->prefix . 'nexus_stats_clicks';
+        $results = $wpdb->get_results($wpdb->prepare("
+            SELECT element_selector, click_count
+            FROM $table
+            WHERE post_id = %d
+            ORDER BY click_count DESC
+            LIMIT 50
+        ", $post_id));
+        return rest_ensure_response(['success' => true, 'data' => $results]);
+    }
+
+    public static function add_annotation(WP_REST_Request $request) {
+        $date = sanitize_text_field($request->get_param('date'));
+        $text = sanitize_text_field($request->get_param('text'));
+
+        if ($date && $text) {
+            global $wpdb;
+            $table = $wpdb->prefix . 'nexus_stats_annotations';
+            $wpdb->insert($table, [
+                'note_date' => $date,
+                'note_text' => $text
+            ]);
+            return rest_ensure_response(['success' => true]);
+        }
+        return rest_ensure_response(['success' => false]);
+    }
+
+    public static function cleanup_ghost_traffic(WP_REST_Request $request) {
+        global $wpdb;
+        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
+
+        // Define ghost traffic heuristics:
+        // Ex: read_time is exactly 0 and visitor only has 1 view total.
+        $wpdb->query("
+            DELETE FROM $table_log
+            WHERE read_time_seconds = 0
+            AND visitor_id IN (
+                SELECT vid FROM (
+                    SELECT visitor_id as vid
+                    FROM $table_log
+                    GROUP BY visitor_id
+                    HAVING COUNT(id) = 1
+                ) as tmp
+            )
+        ");
+
+        $deleted = $wpdb->rows_affected;
+        return rest_ensure_response(['success' => true, 'deleted' => $deleted]);
     }
 
     public static function update_theme(WP_REST_Request $request) {
@@ -231,6 +330,22 @@ class Nexus_Stats_REST {
             }
         }
 
+        // Get Annotations for the timeframe
+        $table_annotations = $wpdb->prefix . 'nexus_stats_annotations';
+        $annotations = $wpdb->get_results($wpdb->prepare("
+            SELECT note_date, note_text
+            FROM $table_annotations
+            WHERE note_date >= DATE(%s) AND note_date <= DATE(%s)
+        ", $start_date, $end_date));
+
+        // Get Monthly Goal Progress
+        $monthly_goal = (int) get_option('nexus_stats_monthly_goal', 10000);
+        $month_start = date('Y-m-01 00:00:00', $now);
+        $month_views = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(id) FROM $table_name
+            WHERE view_datetime >= %s
+        ", $month_start));
+
         return rest_ensure_response([
             'success' => true,
             'data' => [
@@ -240,7 +355,10 @@ class Nexus_Stats_REST {
                 'chart_values'   => $chart_values,
                 'device_stats'   => $devices,
                 'top_posts'      => self::get_top_content('post', $start_date, $end_date),
-                'top_pages'      => self::get_top_content('page', $start_date, $end_date)
+                'top_pages'      => self::get_top_content('page', $start_date, $end_date),
+                'annotations'    => $annotations,
+                'monthly_goal'   => $monthly_goal,
+                'monthly_views'  => (int)$month_views
             ]
         ]);
     }

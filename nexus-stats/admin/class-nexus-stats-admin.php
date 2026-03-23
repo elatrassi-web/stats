@@ -35,9 +35,11 @@ class Nexus_Stats_Admin {
 
         wp_enqueue_style('nexus-stats-admin-css', NEXUS_STATS_VIEWS_URL . 'assets/css/nexus-stats-admin.css', [], NEXUS_STATS_VIEWS_VERSION);
         wp_enqueue_script('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
+        wp_enqueue_script('chartjs-plugin-annotation', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js', ['chart-js'], null, true);
+        wp_enqueue_script('html2pdf-js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', [], null, true);
 
         if ($hook == 'toplevel_page_nexus-stats-stats') {
-            wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js'], NEXUS_STATS_VIEWS_VERSION, true);
+            wp_enqueue_script('nexus-stats-admin-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-admin.js', ['chart-js', 'chartjs-plugin-annotation', 'html2pdf-js'], NEXUS_STATS_VIEWS_VERSION, true);
 
             $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
             $theme = get_option('nexus_stats_theme', 'dark');
@@ -65,6 +67,16 @@ class Nexus_Stats_Admin {
         register_setting('nexus_stats_settings_group', 'nexus_stats_theme', [
             'type' => 'string',
             'default' => 'dark',
+            'sanitize_callback' => 'sanitize_text_field'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_monthly_goal', [
+            'type' => 'integer',
+            'default' => 10000,
+            'sanitize_callback' => 'absint'
+        ]);
+        register_setting('nexus_stats_settings_group', 'nexus_stats_gdpr_strict', [
+            'type' => 'string',
+            'default' => 'no',
             'sanitize_callback' => 'sanitize_text_field'
         ]);
     }
@@ -218,6 +230,23 @@ class Nexus_Stats_Admin {
                                 Ignorer les bots connus et optimiser les requêtes
                             </label>
                             <p class="description">Activez cette option pour réduire la charge sur votre serveur en ne comptabilisant pas les robots d'indexation (Google, Bing, etc.).</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Mode "Confidentialité Totale" (RGPD Ready)</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="nexus_stats_gdpr_strict" value="yes" <?php checked(get_option('nexus_stats_gdpr_strict', 'no'), 'yes'); ?> />
+                                Anonymisation stricte (Zéro Cookie)
+                            </label>
+                            <p class="description">N'utilise plus le LocalStorage. Génère un identifiant de session volatile uniquement. Vous exempte potentiellement du bandeau de consentement.</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Objectif Mensuel de Vues</th>
+                        <td>
+                            <input type="number" name="nexus_stats_monthly_goal" value="<?php echo esc_attr(get_option('nexus_stats_monthly_goal', 10000)); ?>" class="regular-text" />
+                            <p class="description">Fixez un objectif pour activer la jauge de progression dans le tableau de bord (Gamification).</p>
                         </td>
                     </tr>
                 </table>

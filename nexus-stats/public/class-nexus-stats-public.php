@@ -14,16 +14,29 @@ class Nexus_Stats_Public {
 
             $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
             $eco_mode = get_option('nexus_stats_eco_mode', 'no');
+            $gdpr_strict = get_option('nexus_stats_gdpr_strict', 'no');
 
             wp_localize_script('nexus-stats-public-js', 'nexusStatsData', [
                 'postID' => $post->ID,
                 'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
                 'refreshRate' => (int)$refresh_rate * 1000,
                 'ecoMode' => $eco_mode,
+                'gdprStrict' => $gdpr_strict,
                 'nonce' => wp_create_nonce('wp_rest') // Pour l'API REST
             ]);
 
             wp_enqueue_script('nexus-stats-public-js');
+
+            // Si l'utilisateur est admin, charger le Heatmap
+            if (current_user_can('manage_options')) {
+                wp_register_script('nexus-stats-heatmap-js', NEXUS_STATS_VIEWS_URL . 'assets/js/nexus-stats-heatmap.js', [], NEXUS_STATS_VIEWS_VERSION, true);
+                wp_localize_script('nexus-stats-heatmap-js', 'nexusStatsHeatmapData', [
+                    'postID' => $post->ID,
+                    'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
+                    'nonce' => wp_create_nonce('wp_rest')
+                ]);
+                wp_enqueue_script('nexus-stats-heatmap-js');
+            }
         }
     }
 }

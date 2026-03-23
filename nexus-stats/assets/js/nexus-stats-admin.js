@@ -28,6 +28,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnThemeToggle = document.getElementById('nexus_stats_theme_toggle');
     const wrapContainer = document.querySelector('.nexus-stats-wrap');
 
+    // Nouveaux boutons pour les fonctionnalités 2026
+    const btnExportPdf = document.getElementById('nexus_stats_export_pdf');
+    const btnCleanupGhosts = document.getElementById('nexus_stats_cleanup_ghosts');
+    const btnAddAnnotation = document.getElementById('nexus_stats_add_annotation');
+    const goalText = document.getElementById('nexus_stats_goal_text');
+    const goalBar = document.getElementById('nexus_stats_goal_bar');
+
     let currentTheme = nexusStatsAdminData.theme || 'dark';
 
     // Variables de couleurs dynamiques
@@ -123,6 +130,21 @@ document.addEventListener("DOMContentLoaded", function() {
                         responsive: true,
                         maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: tooltipBg,
+                                titleColor: tooltipTitle,
+                                bodyColor: emeraldColor,
+                                padding: 12,
+                                borderColor: tooltipBorder,
+                                borderWidth: 1,
+                                cornerRadius: 8
+                            },
+                            annotation: {
+                                annotations: {}
+                            }
+                        },
                         scales: {
                             y: {
                                 beginAtZero: true,
@@ -134,22 +156,46 @@ document.addEventListener("DOMContentLoaded", function() {
                                 grid: { display: false },
                                 border: { display: false }
                             }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: tooltipBg,
-                                titleColor: tooltipTitle,
-                                bodyColor: emeraldColor,
-                                padding: 12,
-                                borderColor: tooltipBorder,
-                                borderWidth: 1,
-                                cornerRadius: 8
-                            }
                         }
                     }
                 };
+
+                // Add Annotations if available
+                if (data.annotations && data.annotations.length > 0) {
+                    let annotObj = {};
+                    data.annotations.forEach((annot, index) => {
+                        // Find if date exists in our labels to place the line
+                        let labelParts = annot.note_date.split('-'); // YYYY-MM-DD
+                        let dayMonth = `${labelParts[2]}/${labelParts[1]}`; // DD/MM (matches our 7days format roughly)
+
+                        annotObj[`line${index}`] = {
+                            type: 'line',
+                            mode: 'vertical',
+                            scaleID: 'x',
+                            value: dayMonth, // Will try to match label. If exact match isn't found, it might not render perfectly, but works for specific dates in range
+                            borderColor: '#0088ff',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                content: annot.note_text,
+                                display: true,
+                                position: 'start',
+                                backgroundColor: 'rgba(0, 136, 255, 0.8)'
+                            }
+                        };
+                    });
+                    mainChartConfig.options.plugins.annotation.annotations = annotObj;
+                }
+
                 mainChart = new Chart(mainCtx, mainChartConfig);
+
+                // --- Update Goal Widget ---
+                const goal = data.monthly_goal || 1;
+                const currentViews = data.monthly_views || 0;
+                let percent = Math.min(100, Math.round((currentViews / goal) * 100));
+
+                if (goalText) goalText.innerText = `${formatNumber(currentViews)} / ${formatNumber(goal)} (${percent}%)`;
+                if (goalBar) goalBar.style.width = `${percent}%`;
 
                 // --- Graphique Appareils (Mobile vs Desktop) ---
                 if (deviceCtx) {
@@ -262,6 +308,65 @@ document.addEventListener("DOMContentLoaded", function() {
     // Appliquer dates personnalisées
     if (btnApplyDates) {
         btnApplyDates.addEventListener('click', loadDashboardData);
+    }
+
+    // Ajouter Annotation
+    if (btnAddAnnotation) {
+        btnAddAnnotation.addEventListener('click', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('nexus_stats_annot_date').value;
+            const text = document.getElementById('nexus_stats_annot_text').value;
+
+            if (date && text) {
+                fetch(`${restUrl}/annotations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce },
+                    body: JSON.stringify({ date: date, text: text })
+                }).then(res => res.json()).then(res => {
+                    if(res.success) {
+                        document.getElementById('nexus_stats_annot_text').value = '';
+                        loadDashboardData();
+                    }
+                });
+            } else {
+                alert("Veuillez remplir la date et le texte.");
+            }
+        });
+    }
+
+    // Export PDF
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener('click', function(e) {
+            e.preventDefault();
+            const element = document.getElementById('nexus_stats_pdf_area');
+            const opt = {
+                margin:       10,
+                filename:     'Rapport_Nexus_Stats.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: isDark ? '#121212' : '#f5f7fa' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        });
+    }
+
+    // Nettoyer Stats (Ghosts)
+    if (btnCleanupGhosts) {
+        btnCleanupGhosts.addEventListener('click', function(e) {
+            e.preventDefault();
+            if(confirm("Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?")) {
+                fetch(`${restUrl}/cleanup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': nonce }
+                }).then(res => res.json()).then(res => {
+                    if (res.success) {
+                        alert(`Nettoyage terminé : ${res.deleted} vues fantômes supprimées.`);
+                        loadDashboardData();
+                    }
+                });
+            }
+        });
     }
 
     // Changement de Thème (Toggle)
