@@ -3,7 +3,7 @@ Contributors: elatrassi
 Donate link: https://www.linkedin.com/in/elatrassi/
 Tags: analytics, statistics, visitors, heatmap, tracking
 Requires at least: 5.6
-Tested up to: 6.4
+Tested up to: 6.9
 Stable tag: 6.0
 Requires PHP: 7.2
 License: GPLv2 or later

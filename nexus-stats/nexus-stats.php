@@ -5,7 +5,9 @@
  * Version: 6.0
  * Author: Mohamed El Atrassi
  * Author URI: https://www.linkedin.com/in/elatrassi/
- * Text Domain: nexus-stats-views
+ * Text Domain: nexus-stats
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if (!defined('ABSPATH')) exit; // Sécurité
@@ -23,7 +25,7 @@ require_once NEXUS_STATS_VIEWS_DIR . 'public/class-nexus-stats-public.php';
 
 // Initialisation
 function nexus_stats_views_init() {
-    load_plugin_textdomain('nexus-stats-views', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    load_plugin_textdomain('nexus-stats', false, dirname(plugin_basename(__FILE__)) . '/languages');
     Nexus_Stats_DB::init();
     Nexus_Stats_REST::init();
     Nexus_Stats_Hooks::init();

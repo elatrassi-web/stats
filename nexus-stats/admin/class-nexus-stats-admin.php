@@ -56,22 +56,22 @@ class Nexus_Stats_Admin {
                 'refreshRate' => (int)$refresh_rate * 1000,
                 'theme' => sanitize_text_field($theme),
                 'i18n' => [
-                    'views' => __('Vues', 'nexus-stats-views'),
-                    'prev_views' => __('Vues (Précédent)', 'nexus-stats-views'),
-                    'mobile' => __('Mobile', 'nexus-stats-views'),
-                    'desktop' => __('Desktop', 'nexus-stats-views'),
-                    'no_data' => __('Aucune donnée', 'nexus-stats-views'),
-                    'empty_period' => __('Aucune donnée pour cette période.', 'nexus-stats-views'),
-                    'evergreen_title' => __('Evergreen (Stable/Croissant)', 'nexus-stats-views'),
-                    'dying_title' => __('Mourant (En baisse)', 'nexus-stats-views'),
-                    'total_views' => __('Vues Totales', 'nexus-stats-views'),
-                    'avg_read_time' => __('Temps de lecture moyen', 'nexus-stats-views'),
-                    'avg_source_time' => __('Temps de lecture moyen généré par cette source', 'nexus-stats-views'),
-                    'views_brought' => __('Vues apportées', 'nexus-stats-views'),
-                    'fill_date_text' => __('Veuillez remplir la date et le texte.', 'nexus-stats-views'),
-                    'pdf_name' => __('Rapport_Nexus_Stats.pdf', 'nexus-stats-views'),
-                    'confirm_ghost' => __('Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?', 'nexus-stats-views'),
-                    'cleanup_done' => __('Nettoyage terminé : %s vues fantômes supprimées.', 'nexus-stats-views'),
+                    'views' => __('Vues', 'nexus-stats'),
+                    'prev_views' => __('Vues (Précédent)', 'nexus-stats'),
+                    'mobile' => __('Mobile', 'nexus-stats'),
+                    'desktop' => __('Desktop', 'nexus-stats'),
+                    'no_data' => __('Aucune donnée', 'nexus-stats'),
+                    'empty_period' => __('Aucune donnée pour cette période.', 'nexus-stats'),
+                    'evergreen_title' => __('Evergreen (Stable/Croissant)', 'nexus-stats'),
+                    'dying_title' => __('Mourant (En baisse)', 'nexus-stats'),
+                    'total_views' => __('Vues Totales', 'nexus-stats'),
+                    'avg_read_time' => __('Temps de lecture moyen', 'nexus-stats'),
+                    'avg_source_time' => __('Temps de lecture moyen généré par cette source', 'nexus-stats'),
+                    'views_brought' => __('Vues apportées', 'nexus-stats'),
+                    'fill_date_text' => __('Veuillez remplir la date et le texte.', 'nexus-stats'),
+                    'pdf_name' => __('Rapport_Nexus_Stats.pdf', 'nexus-stats'),
+                    'confirm_ghost' => __('Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?', 'nexus-stats'),
+                    'cleanup_done' => __('Nettoyage terminé : %s vues fantômes supprimées.', 'nexus-stats'),
                 ]
             ]);
         }
@@ -356,42 +356,42 @@ class Nexus_Stats_Admin {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php esc_html_e('Modules de Suivi (UX & Front-end)', 'nexus-stats-views'); ?></th>
+                        <th scope="row"><?php esc_html_e('Modules de Suivi (UX & Front-end)', 'nexus-stats'); ?></th>
                         <td>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_track_scroll" value="yes" <?php checked(get_option('nexus_stats_track_scroll', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Suivre la profondeur de défilement (Scroll Depth 25-100%)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Suivre la profondeur de défilement (Scroll Depth 25-100%)', 'nexus-stats'); ?>
                             </label>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_track_outbound" value="yes" <?php checked(get_option('nexus_stats_track_outbound', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Suivre les clics sur les liens sortants (Outbound Links)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Suivre les clics sur les liens sortants (Outbound Links)', 'nexus-stats'); ?>
                             </label>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_track_404" value="yes" <?php checked(get_option('nexus_stats_track_404', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Détection Intelligente des Erreurs 404 (Liens cassés)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Détection Intelligente des Erreurs 404 (Liens cassés)', 'nexus-stats'); ?>
                             </label>
                             <?php if (class_exists('WooCommerce')): ?>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_woo_sync" value="yes" <?php checked(get_option('nexus_stats_woo_sync', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Module de Conversion WooCommerce (Lier le CA à la source de trafic)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Module de Conversion WooCommerce (Lier le CA à la source de trafic)', 'nexus-stats'); ?>
                             </label>
                             <?php endif; ?>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_downtime_alerts" value="yes" <?php checked(get_option('nexus_stats_downtime_alerts', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Alertes de "Downtime" (M\'avertir si le trafic chute à 0 anormalement)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Alertes de "Downtime" (M\'avertir si le trafic chute à 0 anormalement)', 'nexus-stats'); ?>
                             </label>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php esc_html_e('Widgets du Tableau de Bord', 'nexus-stats-views'); ?></th>
+                        <th scope="row"><?php esc_html_e('Widgets du Tableau de Bord', 'nexus-stats'); ?></th>
                         <td>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_narrative" value="yes" <?php checked(get_option('nexus_stats_narrative', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Afficher le "Résumé Narratif" (Analyse automatisée)', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Afficher le "Résumé Narratif" (Analyse automatisée)', 'nexus-stats'); ?>
                             </label>
                             <label style="display:block; margin-bottom:8px;">
                                 <input type="checkbox" name="nexus_stats_health" value="yes" <?php checked(get_option('nexus_stats_health', 'yes'), 'yes'); ?> />
-                                <?php esc_html_e('Afficher le widget "Santé & UX Core Vitals"', 'nexus-stats-views'); ?>
+                                <?php esc_html_e('Afficher le widget "Santé & UX Core Vitals"', 'nexus-stats'); ?>
                             </label>
                         </td>
                     </tr>

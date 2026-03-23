@@ -24,7 +24,7 @@ class Nexus_Stats_Hooks {
             global $wpdb;
             $table = $wpdb->prefix . 'nexus_stats_404';
 
-            $url = sanitize_text_field($_SERVER['REQUEST_URI']);
+            $url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
             $referer = wp_get_referer() ?: '';
 
             $wpdb->query($wpdb->prepare("
@@ -38,7 +38,7 @@ class Nexus_Stats_Hooks {
     // --- WooCommerce Tracker ---
     public static function woo_capture_source() {
         if (get_option('nexus_stats_woo_sync', 'yes') === 'yes' && !is_admin() && !isset($_COOKIE['nexus_stats_source'])) {
-            $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+            $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
             $source = Nexus_Stats_DB::parse_traffic_source($referrer, is_front_page());
             // Store in cookie for 30 days
             setcookie('nexus_stats_source', $source['type'], time() + (30 * 24 * 60 * 60), COOKIEPATH, COOKIE_DOMAIN);
@@ -54,7 +54,7 @@ class Nexus_Stats_Hooks {
         global $wpdb;
         $table = $wpdb->prefix . 'nexus_stats_woo';
 
-        $source = isset($_COOKIE['nexus_stats_source']) ? sanitize_text_field($_COOKIE['nexus_stats_source']) : 'direct';
+        $source = isset($_COOKIE['nexus_stats_source']) ? sanitize_text_field(wp_unslash($_COOKIE['nexus_stats_source'])) : 'direct';
         $total = $order->get_total();
 
         $wpdb->query($wpdb->prepare("

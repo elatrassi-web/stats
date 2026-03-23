@@ -37,8 +37,8 @@ class Nexus_Stats_Public {
                     'restUrl' => esc_url_raw(rest_url('nexus-stats/v1')),
                     'nonce' => wp_create_nonce('wp_rest'),
                     'i18n' => [
-                        'clicks' => __('clics', 'nexus-stats-views'),
-                        'clicks_on_element' => __('Nexus Stats: %s clics sur cet élément', 'nexus-stats-views')
+                        'clicks' => __('clics', 'nexus-stats'),
+                        'clicks_on_element' => __('Nexus Stats: %s clics sur cet élément', 'nexus-stats')
                     ]
                 ]);
                 wp_enqueue_script('nexus-stats-heatmap-js');
