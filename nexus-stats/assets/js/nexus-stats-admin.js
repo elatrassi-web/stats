@@ -20,20 +20,36 @@ document.addEventListener("DOMContentLoaded", function() {
     const filterSelect = document.getElementById('nexus_stats_time_filter');
     const switcherBtns = document.querySelectorAll('.switcher-btn');
 
-    const theme = nexusStatsAdminData.theme || 'dark';
-    const isDark = theme === 'dark';
+    // Nouveaux éléments pour Custom Dates & Theme
+    const customDatesWrapper = document.getElementById('nexus_stats_custom_dates_wrapper');
+    const inputDateStart = document.getElementById('nexus_stats_date_start');
+    const inputDateEnd = document.getElementById('nexus_stats_date_end');
+    const btnApplyDates = document.getElementById('nexus_stats_apply_dates');
+    const btnThemeToggle = document.getElementById('nexus_stats_theme_toggle');
+    const wrapContainer = document.querySelector('.nexus-stats-wrap');
 
-    // Configuration globale Chart.js
-    Chart.defaults.color = isDark ? '#a0a0a0' : '#646970';
-    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+    let currentTheme = nexusStatsAdminData.theme || 'dark';
 
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-    const emeraldColor = isDark ? '#00ff88' : '#00a32a';
-    const emeraldColorBg = isDark ? 'rgba(0, 255, 136, 0.1)' : 'rgba(0, 163, 42, 0.1)';
-    const pointColor = isDark ? '#121212' : '#ffffff';
-    const tooltipBg = isDark ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-    const tooltipTitle = isDark ? '#ffffff' : '#2c3338';
-    const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    // Variables de couleurs dynamiques
+    let isDark, gridColor, emeraldColor, emeraldColorBg, pointColor, tooltipBg, tooltipTitle, tooltipBorder;
+
+    function updateChartColors() {
+        isDark = currentTheme === 'dark';
+
+        // Configuration globale Chart.js
+        Chart.defaults.color = isDark ? '#a0a0a0' : '#646970';
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+
+        gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+        emeraldColor = isDark ? '#00ff88' : '#00a32a';
+        emeraldColorBg = isDark ? 'rgba(0, 255, 136, 0.1)' : 'rgba(0, 163, 42, 0.1)';
+        pointColor = isDark ? '#121212' : '#ffffff';
+        tooltipBg = isDark ? 'rgba(18, 18, 18, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+        tooltipTitle = isDark ? '#ffffff' : '#2c3338';
+        tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    }
+
+    updateChartColors(); // Init
 
     // Fonction de formatage (1 000 au lieu de 1000)
     const formatNumber = (num) => {
@@ -51,7 +67,17 @@ document.addEventListener("DOMContentLoaded", function() {
     // 1. Charger les stats globales du Dashboard
     function loadDashboardData() {
         const timeRange = filterSelect.value;
-        const endpoint = `${restUrl}/stats/dashboard?time_range=${timeRange}`;
+        let endpoint = `${restUrl}/stats/dashboard?time_range=${timeRange}`;
+
+        if (timeRange === 'custom') {
+            const start = inputDateStart.value;
+            const end = inputDateEnd.value;
+            if (start && end) {
+                endpoint += `&custom_start=${start}&custom_end=${end}`;
+            } else {
+                return; // Ne rien charger si les dates ne sont pas remplies
+            }
+        }
 
         fetch(endpoint, {
             method: 'GET',
@@ -222,7 +248,49 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Changement de période
     if (filterSelect) {
-        filterSelect.addEventListener('change', loadDashboardData);
+        filterSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customDatesWrapper.style.display = 'flex';
+                // Ne pas charger immédiatement, attendre le clic sur "Appliquer"
+            } else {
+                customDatesWrapper.style.display = 'none';
+                loadDashboardData();
+            }
+        });
+    }
+
+    // Appliquer dates personnalisées
+    if (btnApplyDates) {
+        btnApplyDates.addEventListener('click', loadDashboardData);
+    }
+
+    // Changement de Thème (Toggle)
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Toggle Theme value
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            // Mettre à jour la classe CSS du container
+            wrapContainer.classList.remove('nexus-stats-theme-dark', 'nexus-stats-theme-light');
+            wrapContainer.classList.add(`nexus-stats-theme-${currentTheme}`);
+
+            // Mettre à jour les couleurs Chart.js
+            updateChartColors();
+
+            // Re-dessiner les graphiques avec les nouvelles couleurs
+            loadDashboardData();
+
+            // Envoyer la préférence au serveur pour la sauvegarder
+            fetch(`${restUrl}/theme`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': nonce
+                },
+                body: JSON.stringify({ theme: currentTheme })
+            });
+        });
     }
 
     // Switcher de type de graphique (Ligne vs Barre)

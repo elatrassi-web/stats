@@ -48,6 +48,13 @@ class Nexus_Stats_REST {
             'callback' => [__CLASS__, 'get_live_count'],
             'permission_callback' => [__CLASS__, 'check_admin_permissions'],
         ]);
+
+        // Toggle Theme (Admin only)
+        register_rest_route('nexus-stats/v1', '/theme', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'update_theme'],
+            'permission_callback' => [__CLASS__, 'check_admin_permissions'],
+        ]);
     }
 
     public static function check_admin_permissions() {
@@ -108,6 +115,15 @@ class Nexus_Stats_REST {
         return rest_ensure_response(['success' => true]);
     }
 
+    public static function update_theme(WP_REST_Request $request) {
+        $theme = sanitize_text_field($request->get_param('theme'));
+        if (in_array($theme, ['dark', 'light'])) {
+            update_option('nexus_stats_theme', $theme);
+            return rest_ensure_response(['success' => true]);
+        }
+        return rest_ensure_response(['success' => false, 'message' => 'Invalid theme']);
+    }
+
     public static function get_dashboard_data(WP_REST_Request $request) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'nexus_stats_views_log';
@@ -120,6 +136,30 @@ class Nexus_Stats_REST {
         $group_format = '';
 
         switch ($time_range) {
+            case 'custom':
+                $custom_start = sanitize_text_field($request->get_param('custom_start'));
+                $custom_end   = sanitize_text_field($request->get_param('custom_end'));
+
+                if ($custom_start && $custom_end) {
+                    $start_date = date('Y-m-d 00:00:00', strtotime($custom_start));
+                    $end_date   = date('Y-m-d 23:59:59', strtotime($custom_end));
+
+                    $diff = strtotime($end_date) - strtotime($start_date);
+                    $days = round($diff / 86400);
+
+                    if ($days <= 1) {
+                        $group_format = '%H:00';
+                    } elseif ($days <= 60) {
+                        $group_format = '%d/%m';
+                    } else {
+                        $group_format = '%m/%Y';
+                    }
+                } else {
+                    // Fallback to today if dates are missing
+                    $start_date = date('Y-m-d 00:00:00', $now);
+                    $group_format = '%H:00';
+                }
+                break;
             case '30min':
                 $start_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $now));
                 $group_format = '%H:%i';

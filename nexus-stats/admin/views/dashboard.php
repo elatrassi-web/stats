@@ -8,6 +8,15 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
         <div class="nexus-stats-header">
             <h1 class="nexus-stats-title">Vue d'ensemble - Trend 2026</h1>
             <div class="nexus-stats-actions">
+                <button id="nexus_stats_theme_toggle" class="nexus-stats-icon-btn" title="Changer le thème">
+                    <span class="dashicons dashicons-admin-appearance"></span>
+                </button>
+                <div class="nexus-stats-custom-dates" id="nexus_stats_custom_dates_wrapper" style="display: none;">
+                    <input type="date" id="nexus_stats_date_start" class="nexus-stats-input" title="Date de début">
+                    <span class="nexus-stats-date-separator">au</span>
+                    <input type="date" id="nexus_stats_date_end" class="nexus-stats-input" title="Date de fin">
+                    <button id="nexus_stats_apply_dates" class="nexus-stats-btn">Appliquer</button>
+                </div>
                 <select id="nexus_stats_time_filter" class="nexus-stats-select">
                     <option value="today">Aujourd'hui</option>
                     <option value="30min">30 Dernières Minutes</option>
@@ -15,6 +24,7 @@ $theme_class = ($theme === 'light') ? 'nexus-stats-theme-light' : 'nexus-stats-t
                     <option value="7days" selected>7 Derniers Jours</option>
                     <option value="30days">30 Derniers Jours</option>
                     <option value="last_month">Mois Précédent</option>
+                    <option value="custom">Période personnalisée...</option>
                 </select>
             </div>
         </div>

@@ -75,7 +75,13 @@
 /* ==========================================================================
  * Composants & Formulaires
  * ========================================================================== */
-.nexus-stats-select {
+.nexus-stats-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nexus-stats-select, .nexus-stats-input {
     background: var(--nexus-stats-card-bg);
     color: var(--nexus-stats-text-main);
     border: 1px solid var(--nexus-stats-card-border);
@@ -88,7 +94,12 @@
     transition: var(--nexus-stats-transition);
 }
 
-.nexus-stats-select:hover, .nexus-stats-select:focus {
+.nexus-stats-input {
+    padding: 9px 12px; /* slightly smaller padding for date inputs to match height */
+}
+
+.nexus-stats-select:hover, .nexus-stats-select:focus,
+.nexus-stats-input:hover, .nexus-stats-input:focus {
     border-color: var(--nexus-stats-emerald);
     outline: none;
     box-shadow: 0 0 0 3px var(--nexus-stats-emerald-glow);
@@ -97,6 +108,58 @@
 .nexus-stats-select option {
     background: var(--nexus-stats-bg);
     color: var(--nexus-stats-text-main);
+}
+
+.nexus-stats-icon-btn {
+    background: var(--nexus-stats-badge-bg);
+    color: var(--nexus-stats-text-main);
+    border: 1px solid var(--nexus-stats-badge-border);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-icon-btn:hover {
+    background: var(--nexus-stats-emerald-glow);
+    color: var(--nexus-stats-emerald);
+    border-color: transparent;
+}
+
+.nexus-stats-btn {
+    background: var(--nexus-stats-emerald);
+    color: #121212;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-btn:hover {
+    box-shadow: 0 0 10px var(--nexus-stats-emerald-glow);
+    transform: translateY(-1px);
+}
+
+.nexus-stats-custom-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--nexus-stats-badge-bg);
+    padding: 4px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-date-separator {
+    color: var(--nexus-stats-text-muted);
+    font-size: 13px;
+    font-weight: 500;
 }
 
 /* ==========================================================================
