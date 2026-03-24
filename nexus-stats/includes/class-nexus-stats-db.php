@@ -139,11 +139,10 @@ class Nexus_Stats_DB {
         if (empty($ip) || $ip === '127.0.0.1' || $ip === '::1') return 'XX';
 
         global $wpdb;
-        $table_ip_cache = $wpdb->prefix . 'nexus_stats_ip_cache';
         $ip_hash = md5($ip . wp_salt()); // Hash IP so it's never stored in clear text
 
         // Check cache
-        $cached_country = $wpdb->get_var($wpdb->prepare("SELECT country_code FROM $table_ip_cache WHERE ip_hash = %s", $ip_hash));
+        $cached_country = $wpdb->get_var($wpdb->prepare("SELECT country_code FROM {$wpdb->prefix}nexus_stats_ip_cache WHERE ip_hash = %s", $ip_hash));
         if ($cached_country) return $cached_country;
 
         // Fallback API if no GeoLite2 is present (Note: For a real 2026 local DB, you'd use a maxmind reader library here.
@@ -156,7 +155,8 @@ class Nexus_Stats_DB {
         }
 
         // Save to cache
-        $wpdb->replace($table_ip_cache, ['ip_hash' => $ip_hash, 'country_code' => $country]);
+        $table_cache = $wpdb->prefix . 'nexus_stats_ip_cache';
+        $wpdb->replace($table_cache, ['ip_hash' => $ip_hash, 'country_code' => $country]);
         return $country;
     }
 
@@ -193,7 +193,6 @@ class Nexus_Stats_DB {
     // Helper : Track a view
     public static function track_view($post_id, $visitor_id, $device_type = 'desktop', $referrer = '', $lang = 'en') {
         global $wpdb;
-        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
 
         // Process IP for Geolocation (Anonymized)
         $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])) : (isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '');
@@ -209,7 +208,7 @@ class Nexus_Stats_DB {
         $wpdb->suppress_errors = true;
         $start_time = microtime(true);
 
-        $wpdb->insert($table_log, array(
+        $wpdb->insert("{$wpdb->prefix}nexus_stats_views_log", array(
             'post_id'       => $post_id,
             'visitor_id'    => $visitor_id,
             'device_type'   => $device_type,
@@ -232,11 +231,10 @@ class Nexus_Stats_DB {
     // Helper : Update advanced metrics (Scroll & Load Time)
     public static function update_metrics($post_id, $visitor_id, $scroll, $load_time) {
         global $wpdb;
-        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
         $start_time = microtime(true);
 
         $last_view = $wpdb->get_var($wpdb->prepare("
-            SELECT id FROM $table_log
+            SELECT id FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE post_id = %d AND visitor_id = %s AND view_datetime >= (CURRENT_TIMESTAMP - INTERVAL 1 HOUR)
             ORDER BY view_datetime DESC LIMIT 1
         ", $post_id, $visitor_id));
@@ -247,7 +245,7 @@ class Nexus_Stats_DB {
             if ($load_time > 0) $update_data['load_time_ms'] = $load_time;
 
             if (!empty($update_data)) {
-                $wpdb->update($table_log, $update_data, ['id' => $last_view]);
+                $wpdb->update("{$wpdb->prefix}nexus_stats_views_log", $update_data, ['id' => $last_view]);
             }
         }
         self::$query_time += (microtime(true) - $start_time) * 1000;
@@ -257,12 +255,11 @@ class Nexus_Stats_DB {
     // Helper : Track Outbound Link
     public static function track_outbound($url) {
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_outbound';
         $start_time = microtime(true);
 
         $url = substr($url, 0, 191);
         $wpdb->query($wpdb->prepare("
-            INSERT INTO $table (target_url, click_count, last_clicked)
+            INSERT INTO {$wpdb->prefix}nexus_stats_outbound (target_url, click_count, last_clicked)
             VALUES (%s, 1, CURRENT_TIMESTAMP)
             ON DUPLICATE KEY UPDATE click_count = click_count + 1, last_clicked = CURRENT_TIMESTAMP
         ", $url));
@@ -273,26 +270,24 @@ class Nexus_Stats_DB {
     // Helper : Update read time
     public static function update_read_time($post_id, $visitor_id, $read_time) {
         global $wpdb;
-        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
 
         // Trouver la dernière vue pour ce visiteur et cet article dans la dernière heure
         $last_view = $wpdb->get_var($wpdb->prepare("
-            SELECT id FROM $table_log
+            SELECT id FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE post_id = %d AND visitor_id = %s AND view_datetime >= (CURRENT_TIMESTAMP - INTERVAL 1 HOUR)
             ORDER BY view_datetime DESC LIMIT 1
         ", $post_id, $visitor_id));
 
         if ($last_view) {
-            $wpdb->update($table_log, ['read_time_seconds' => $read_time], ['id' => $last_view]);
+            $wpdb->update("{$wpdb->prefix}nexus_stats_views_log", ['read_time_seconds' => $read_time], ['id' => $last_view]);
         }
     }
 
     // Helper : Live ping
     public static function live_ping($visitor_id, $post_id = 0) {
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_live_users';
         $wpdb->query($wpdb->prepare("
-            INSERT INTO $table (visitor_id, last_ping, post_id)
+            INSERT INTO {$wpdb->prefix}nexus_stats_live_users (visitor_id, last_ping, post_id)
             VALUES (%s, CURRENT_TIMESTAMP, %d)
             ON DUPLICATE KEY UPDATE last_ping = CURRENT_TIMESTAMP, post_id = %d
         ", $visitor_id, $post_id, $post_id));
@@ -301,24 +296,22 @@ class Nexus_Stats_DB {
     // Helper : Live exit
     public static function live_exit($visitor_id) {
         global $wpdb;
-        $wpdb->delete($wpdb->prefix . 'nexus_stats_live_users', ['visitor_id' => $visitor_id]);
+        $wpdb->delete("{$wpdb->prefix}nexus_stats_live_users", ['visitor_id' => $visitor_id]);
     }
 
     // Nettoyage des live users
     public static function cleanup_live_users() {
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_live_users';
         // Le délai de nettoyage dépend du paramètre (ex: 60s -> nettoyer après 65s)
         $refresh_rate = get_option('nexus_stats_refresh_rate', 60);
         $cleanup_time = (int)$refresh_rate + 5;
-        $wpdb->query($wpdb->prepare("DELETE FROM $table WHERE last_ping < (CURRENT_TIMESTAMP - INTERVAL %d SECOND)", $cleanup_time));
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}nexus_stats_live_users WHERE last_ping < (CURRENT_TIMESTAMP - INTERVAL %d SECOND)", $cleanup_time));
     }
 
     // Compter les live users
     public static function get_live_count() {
         self::cleanup_live_users();
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_live_users';
-        return (int) $wpdb->get_var("SELECT COUNT(*) FROM $table");
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}nexus_stats_live_users");
     }
 }

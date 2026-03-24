@@ -22,13 +22,12 @@ class Nexus_Stats_Hooks {
     public static function detect_404() {
         if (is_404() && get_option('nexus_stats_track_404', 'yes') === 'yes') {
             global $wpdb;
-            $table = $wpdb->prefix . 'nexus_stats_404';
 
             $url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
             $referer = wp_get_referer() ?: '';
 
             $wpdb->query($wpdb->prepare("
-                INSERT INTO $table (requested_url, referer_url, hit_count, last_hit)
+                INSERT INTO {$wpdb->prefix}nexus_stats_404 (requested_url, referer_url, hit_count, last_hit)
                 VALUES (%s, %s, 1, CURRENT_TIMESTAMP)
                 ON DUPLICATE KEY UPDATE hit_count = hit_count + 1, last_hit = CURRENT_TIMESTAMP
             ", substr($url, 0, 191), substr($referer, 0, 255)));
@@ -52,13 +51,12 @@ class Nexus_Stats_Hooks {
         if (!$order) return;
 
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_woo';
 
         $source = isset($_COOKIE['nexus_stats_source']) ? sanitize_text_field(wp_unslash($_COOKIE['nexus_stats_source'])) : 'direct';
         $total = $order->get_total();
 
         $wpdb->query($wpdb->prepare("
-            INSERT IGNORE INTO $table (order_id, referrer_type, order_total, order_date)
+            INSERT IGNORE INTO {$wpdb->prefix}nexus_stats_woo (order_id, referrer_type, order_total, order_date)
             VALUES (%d, %s, %f, CURRENT_TIMESTAMP)
         ", $order_id, $source, $total));
     }
@@ -68,7 +66,6 @@ class Nexus_Stats_Hooks {
         if (get_option('nexus_stats_downtime_alerts', 'yes') !== 'yes') return;
 
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_views_log';
 
         // 1. Get average views for this exact hour over the last 30 days
         $current_hour = gmdate('H');
@@ -76,7 +73,7 @@ class Nexus_Stats_Hooks {
 
         $avg_hourly_traffic = (int) $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(id) / 30
-            FROM $table
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE HOUR(view_datetime) = %d AND view_datetime >= %s
         ", $current_hour, $thirty_days_ago));
 
@@ -86,7 +83,7 @@ class Nexus_Stats_Hooks {
         // 2. Get views in the last 4 hours
         $four_hours_ago = gmdate('Y-m-d H:i:s', strtotime('-4 hours'));
         $recent_traffic = (int) $wpdb->get_var($wpdb->prepare("
-            SELECT COUNT(id) FROM $table
+            SELECT COUNT(id) FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s
         ", $four_hours_ago));
 

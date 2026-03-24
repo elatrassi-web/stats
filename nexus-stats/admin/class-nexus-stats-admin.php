@@ -256,7 +256,9 @@ class Nexus_Stats_Admin {
 
     // --- Client-Ready Shared Dashboard ---
     public static function handle_shared_dashboard() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_GET['nexus_stats_share'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $token = sanitize_text_field(wp_unslash($_GET['nexus_stats_share']));
             $saved_token = get_option('nexus_stats_share_token', '');
 

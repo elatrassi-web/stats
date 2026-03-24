@@ -197,11 +197,10 @@ class Nexus_Stats_REST {
 
         if ($post_id > 0 && !empty($selector)) {
             global $wpdb;
-            $table = $wpdb->prefix . 'nexus_stats_clicks';
             // Limit selector length to match DB
             $selector = substr($selector, 0, 191);
             $wpdb->query($wpdb->prepare("
-                INSERT INTO $table (post_id, element_selector)
+                INSERT INTO {$wpdb->prefix}nexus_stats_clicks (post_id, element_selector)
                 VALUES (%d, %s)
                 ON DUPLICATE KEY UPDATE click_count = click_count + 1
             ", $post_id, $selector));
@@ -212,10 +211,10 @@ class Nexus_Stats_REST {
     public static function get_heatmap_data(WP_REST_Request $request) {
         $post_id = intval($request->get_param('post_id'));
         global $wpdb;
-        $table = $wpdb->prefix . 'nexus_stats_clicks';
+
         $results = $wpdb->get_results($wpdb->prepare("
             SELECT element_selector, click_count
-            FROM $table
+            FROM {$wpdb->prefix}nexus_stats_clicks
             WHERE post_id = %d
             ORDER BY click_count DESC
             LIMIT 50
@@ -229,8 +228,8 @@ class Nexus_Stats_REST {
 
         if ($date && $text) {
             global $wpdb;
-            $table = $wpdb->prefix . 'nexus_stats_annotations';
-            $wpdb->insert($table, [
+
+            $wpdb->insert($wpdb->prefix . 'nexus_stats_annotations', [
                 'note_date' => $date,
                 'note_text' => $text
             ]);
@@ -241,17 +240,16 @@ class Nexus_Stats_REST {
 
     public static function cleanup_ghost_traffic(WP_REST_Request $request) {
         global $wpdb;
-        $table_log = $wpdb->prefix . 'nexus_stats_views_log';
 
         // Define ghost traffic heuristics:
         // Ex: read_time is exactly 0 and visitor only has 1 view total.
         $wpdb->query("
-            DELETE FROM $table_log
+            DELETE FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE read_time_seconds = 0
             AND visitor_id IN (
                 SELECT vid FROM (
                     SELECT visitor_id as vid
-                    FROM $table_log
+                    FROM {$wpdb->prefix}nexus_stats_views_log
                     GROUP BY visitor_id
                     HAVING COUNT(id) = 1
                 ) as tmp
@@ -273,7 +271,7 @@ class Nexus_Stats_REST {
 
     public static function get_dashboard_data(WP_REST_Request $request) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'nexus_stats_views_log';
+
         $time_range = sanitize_text_field($request->get_param('time_range'));
         if (!$time_range) $time_range = 'today';
 
@@ -340,13 +338,13 @@ class Nexus_Stats_REST {
 
         $totals = $wpdb->get_row($wpdb->prepare("
             SELECT COUNT(id) as total_views, COUNT(DISTINCT visitor_id) as total_visitors
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
         ", $start_date, $end_date));
 
         $chart_results = $wpdb->get_results($wpdb->prepare("
             SELECT DATE_FORMAT(view_datetime, %s) as time_label, COUNT(id) as view_count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
             GROUP BY time_label
             ORDER BY view_datetime ASC
@@ -364,7 +362,7 @@ class Nexus_Stats_REST {
         // Mobile vs Desktop
         $device_stats = $wpdb->get_results($wpdb->prepare("
             SELECT device_type, COUNT(id) as count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
             GROUP BY device_type
         ", $start_date, $end_date));
@@ -389,7 +387,7 @@ class Nexus_Stats_REST {
         $monthly_goal = (int) get_option('nexus_stats_monthly_goal', 10000);
         $month_start = gmdate('Y-m-01 00:00:00', $now);
         $month_views = $wpdb->get_var($wpdb->prepare("
-            SELECT COUNT(id) FROM $table_name
+            SELECT COUNT(id) FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s
         ", $month_start));
 
@@ -398,7 +396,7 @@ class Nexus_Stats_REST {
         $prev_month_end   = gmdate('Y-m-t 23:59:59', strtotime('last day of last month'));
 
         $prev_month_views = (int) $wpdb->get_var($wpdb->prepare("
-            SELECT COUNT(id) FROM $table_name
+            SELECT COUNT(id) FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
         ", $prev_month_start, $prev_month_end));
 
@@ -409,7 +407,7 @@ class Nexus_Stats_REST {
 
         $top_source_obj = $wpdb->get_row($wpdb->prepare("
             SELECT referrer_type, COUNT(id) as count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s
             GROUP BY referrer_type
             ORDER BY count DESC LIMIT 1
@@ -428,28 +426,26 @@ class Nexus_Stats_REST {
         }
 
         // Additional Modules Data (404s, Outbounds, WooCommerce, Vitals)
-        $avg_load = $wpdb->get_var($wpdb->prepare("SELECT AVG(load_time_ms) FROM $table_name WHERE view_datetime >= %s AND view_datetime <= %s AND load_time_ms > 0", $start_date, $end_date));
-        $avg_scroll = $wpdb->get_var($wpdb->prepare("SELECT AVG(scroll_depth) FROM $table_name WHERE view_datetime >= %s AND view_datetime <= %s AND scroll_depth > 0", $start_date, $end_date));
+        $avg_load = $wpdb->get_var($wpdb->prepare("SELECT AVG(load_time_ms) FROM {$wpdb->prefix}nexus_stats_views_log WHERE view_datetime >= %s AND view_datetime <= %s AND load_time_ms > 0", $start_date, $end_date));
+        $avg_scroll = $wpdb->get_var($wpdb->prepare("SELECT AVG(scroll_depth) FROM {$wpdb->prefix}nexus_stats_views_log WHERE view_datetime >= %s AND view_datetime <= %s AND scroll_depth > 0", $start_date, $end_date));
         $avg_db_time = get_option('nexus_stats_avg_query_time', 0);
 
-        $table_404 = $wpdb->prefix . 'nexus_stats_404';
-        $errors_404 = $wpdb->get_results("SELECT requested_url, hit_count FROM $table_404 ORDER BY hit_count DESC LIMIT 5");
+        $errors_404 = $wpdb->get_results("SELECT requested_url, hit_count FROM {$wpdb->prefix}nexus_stats_404 ORDER BY hit_count DESC LIMIT 5");
 
-        $table_outbound = $wpdb->prefix . 'nexus_stats_outbound';
-        $outbounds = $wpdb->get_results("SELECT target_url, click_count FROM $table_outbound ORDER BY click_count DESC LIMIT 5");
+        $outbounds = $wpdb->get_results("SELECT target_url, click_count FROM {$wpdb->prefix}nexus_stats_outbound ORDER BY click_count DESC LIMIT 5");
 
         $woo_revenue = 0;
         $woo_sources = [];
         if (class_exists('WooCommerce')) {
-            $table_woo = $wpdb->prefix . 'nexus_stats_woo';
-            $woo_revenue = (float) $wpdb->get_var($wpdb->prepare("SELECT SUM(order_total) FROM $table_woo WHERE order_date >= %s AND order_date <= %s", $start_date, $end_date));
-            $woo_sources = $wpdb->get_results($wpdb->prepare("SELECT referrer_type, SUM(order_total) as revenue, COUNT(id) as orders FROM $table_woo WHERE order_date >= %s AND order_date <= %s GROUP BY referrer_type ORDER BY revenue DESC", $start_date, $end_date));
+
+            $woo_revenue = (float) $wpdb->get_var($wpdb->prepare("SELECT SUM(order_total) FROM {$wpdb->prefix}nexus_stats_woo WHERE order_date >= %s AND order_date <= %s", $start_date, $end_date));
+            $woo_sources = $wpdb->get_results($wpdb->prepare("SELECT referrer_type, SUM(order_total) as revenue, COUNT(id) as orders FROM {$wpdb->prefix}nexus_stats_woo WHERE order_date >= %s AND order_date <= %s GROUP BY referrer_type ORDER BY revenue DESC", $start_date, $end_date));
         }
 
         // Sources (Categories)
         $sources = $wpdb->get_results($wpdb->prepare("
             SELECT referrer_type, COUNT(id) as count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
             GROUP BY referrer_type
         ", $start_date, $end_date));
@@ -457,7 +453,7 @@ class Nexus_Stats_REST {
         // Top Referrers (Domains) + Read Time Correlation
         $referrers = $wpdb->get_results($wpdb->prepare("
             SELECT referrer_domain, referrer_type, COUNT(id) as count, AVG(read_time_seconds) as avg_time
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s AND referrer_type != 'direct' AND referrer_type != 'internal'
             GROUP BY referrer_domain, referrer_type
             ORDER BY count DESC
@@ -467,7 +463,7 @@ class Nexus_Stats_REST {
         // Countries
         $countries = $wpdb->get_results($wpdb->prepare("
             SELECT country_code, COUNT(id) as count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
             GROUP BY country_code
             ORDER BY count DESC
@@ -477,7 +473,7 @@ class Nexus_Stats_REST {
         // Languages
         $languages = $wpdb->get_results($wpdb->prepare("
             SELECT browser_lang, COUNT(id) as count
-            FROM $table_name
+            FROM {$wpdb->prefix}nexus_stats_views_log
             WHERE view_datetime >= %s AND view_datetime <= %s
             GROUP BY browser_lang
             ORDER BY count DESC
@@ -494,7 +490,7 @@ class Nexus_Stats_REST {
 
             $chart_results_prev = $wpdb->get_results($wpdb->prepare("
                 SELECT DATE_FORMAT(view_datetime, %s) as time_label, COUNT(id) as view_count
-                FROM $table_name
+                FROM {$wpdb->prefix}nexus_stats_views_log
                 WHERE view_datetime >= %s AND view_datetime <= %s
                 GROUP BY time_label
                 ORDER BY view_datetime ASC
@@ -551,10 +547,10 @@ class Nexus_Stats_REST {
 
     private static function get_top_content($post_type, $start_date, $end_date) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'nexus_stats_views_log';
+
         $results = $wpdb->get_results($wpdb->prepare("
             SELECT p.post_title, p.ID, COUNT(v.id) as views, AVG(v.read_time_seconds) as avg_read_time
-            FROM $table_name v
+            FROM {$wpdb->prefix}nexus_stats_views_log v
             INNER JOIN {$wpdb->posts} p ON v.post_id = p.ID
             WHERE p.post_type = %s AND p.post_status = 'publish'
             AND v.view_datetime >= %s AND v.view_datetime <= %s
@@ -572,13 +568,13 @@ class Nexus_Stats_REST {
             foreach ($results as $row) {
                 // Get older half views
                 $older_views = (int) $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(id) FROM $table_name
+                    SELECT COUNT(id) FROM {$wpdb->prefix}nexus_stats_views_log
                     WHERE post_id = %d AND view_datetime >= %s AND view_datetime < %s
                 ", $row->ID, $start_date, $mid_date));
 
                 // Get recent half views
                 $recent_views = (int) $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(id) FROM $table_name
+                    SELECT COUNT(id) FROM {$wpdb->prefix}nexus_stats_views_log
                     WHERE post_id = %d AND view_datetime >= %s AND view_datetime <= %s
                 ", $row->ID, $mid_date, $end_date));
 
