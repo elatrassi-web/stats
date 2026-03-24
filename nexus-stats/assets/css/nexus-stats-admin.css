@@ -1,0 +1,544 @@
+/* ==========================================================================
+ * Variables CSS (Thèmes Dark et Light - Accents Émeraude & Bleu Électrique)
+ * ========================================================================== */
+ :root {
+    --nexus-stats-radius: 16px;
+    --nexus-stats-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nexus-stats-theme-dark {
+    --nexus-stats-bg: #121212;
+    --nexus-stats-card-bg: rgba(26, 26, 26, 0.7); /* Glassmorphism Base */
+    --nexus-stats-card-border: rgba(255, 255, 255, 0.08);
+    --nexus-stats-text-main: #f0f0f0;
+    --nexus-stats-text-muted: #a0a0a0;
+
+    --nexus-stats-emerald: #00ff88;
+    --nexus-stats-emerald-glow: rgba(0, 255, 136, 0.3);
+    --nexus-stats-blue: #0088ff;
+
+    --nexus-stats-badge-bg: rgba(255,255,255,0.05);
+    --nexus-stats-badge-border: rgba(255,255,255,0.1);
+    --nexus-stats-hover-bg: rgba(255,255,255,0.02);
+}
+
+.nexus-stats-theme-light {
+    --nexus-stats-bg: #f5f7fa;
+    --nexus-stats-card-bg: rgba(255, 255, 255, 0.85); /* Glassmorphism Base */
+    --nexus-stats-card-border: rgba(0, 0, 0, 0.06);
+    --nexus-stats-text-main: #2c3338;
+    --nexus-stats-text-muted: #646970;
+
+    --nexus-stats-emerald: #00a32a;
+    --nexus-stats-emerald-glow: rgba(0, 163, 42, 0.2);
+    --nexus-stats-blue: #2271b1;
+
+    --nexus-stats-badge-bg: rgba(0,0,0,0.03);
+    --nexus-stats-badge-border: rgba(0,0,0,0.06);
+    --nexus-stats-hover-bg: rgba(0,0,0,0.02);
+}
+
+/* ==========================================================================
+ * Structure Principale
+ * ========================================================================== */
+.nexus-stats-wrap {
+    margin: 20px 20px 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: var(--nexus-stats-text-main);
+    background: var(--nexus-stats-bg);
+    border-radius: var(--nexus-stats-radius);
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+.nexus-stats-wrap * {
+    box-sizing: border-box;
+}
+
+.nexus-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--nexus-stats-card-border);
+}
+
+.nexus-stats-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--nexus-stats-text-main);
+    letter-spacing: -0.5px;
+}
+
+/* ==========================================================================
+ * Composants & Formulaires
+ * ========================================================================== */
+.nexus-stats-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nexus-stats-select, .nexus-stats-input {
+    background: var(--nexus-stats-card-bg);
+    color: var(--nexus-stats-text-main);
+    border: 1px solid var(--nexus-stats-card-border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-input {
+    padding: 9px 12px; /* slightly smaller padding for date inputs to match height */
+}
+
+.nexus-stats-select:hover, .nexus-stats-select:focus,
+.nexus-stats-input:hover, .nexus-stats-input:focus {
+    border-color: var(--nexus-stats-emerald);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--nexus-stats-emerald-glow);
+}
+
+.nexus-stats-select option {
+    background: var(--nexus-stats-bg);
+    color: var(--nexus-stats-text-main);
+}
+
+.nexus-stats-icon-btn {
+    background: var(--nexus-stats-badge-bg);
+    color: var(--nexus-stats-text-main);
+    border: 1px solid var(--nexus-stats-badge-border);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-icon-btn:hover {
+    background: var(--nexus-stats-emerald-glow);
+    color: var(--nexus-stats-emerald);
+    border-color: transparent;
+}
+
+.nexus-stats-btn {
+    background: var(--nexus-stats-emerald);
+    color: #121212;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-btn:hover {
+    box-shadow: 0 0 10px var(--nexus-stats-emerald-glow);
+    transform: translateY(-1px);
+}
+
+.nexus-stats-custom-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--nexus-stats-badge-bg);
+    padding: 4px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-date-separator {
+    color: var(--nexus-stats-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.nexus-stats-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.nexus-stats-annotation-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--nexus-stats-badge-bg);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-input-mini {
+    background: var(--nexus-stats-bg);
+    color: var(--nexus-stats-text-main);
+    border: 1px solid var(--nexus-stats-card-border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.nexus-stats-btn-mini {
+    background: var(--nexus-stats-emerald);
+    color: #121212;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ==========================================================================
+ * Bento Grid Layout
+ * ========================================================================== */
+.nexus-stats-bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-gap: 24px;
+    grid-auto-flow: dense;
+}
+
+.nexus-stats-goal-card {
+    grid-column: span 12;
+}
+
+/* Les métriques en haut */
+.nexus-stats-metric-card {
+    grid-column: span 4;
+}
+
+/* Le graphique principal prend plus de place */
+.nexus-stats-chart-card {
+    grid-column: span 8;
+    grid-row: span 2;
+}
+
+/* Graphiques donut */
+.nexus-stats-device-card,
+.nexus-stats-sources-card {
+    grid-column: span 4;
+}
+
+/* Geolocation Map */
+.nexus-stats-geo-card {
+    grid-column: span 12;
+}
+.nexus-stats-world-map {
+    width: 100%;
+    height: 300px;
+    background: var(--nexus-stats-badge-bg);
+}
+
+/* Listes Top Articles/Pages */
+.nexus-stats-list-card {
+    grid-column: span 6;
+}
+
+/* Switch Toggle CSS */
+.nexus-stats-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.nexus-stats-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.nexus-stats-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--nexus-stats-badge-bg);
+  transition: .4s;
+  border-radius: 20px;
+  border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--nexus-stats-text-muted);
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .nexus-stats-slider {
+  background-color: var(--nexus-stats-emerald);
+}
+
+input:checked + .nexus-stats-slider:before {
+  transform: translateX(16px);
+  background-color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .nexus-stats-metric-card { grid-column: span 6; }
+    .nexus-stats-live-card { grid-column: span 12; }
+    .nexus-stats-chart-card { grid-column: span 12; }
+    .nexus-stats-device-card { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+    .nexus-stats-metric-card,
+    .nexus-stats-list-card { grid-column: span 12; }
+}
+
+/* ==========================================================================
+ * Cards (Glassmorphism)
+ * ========================================================================== */
+.nexus-stats-card {
+    background: var(--nexus-stats-card-bg);
+    border: 1px solid var(--nexus-stats-card-border);
+    border-radius: var(--nexus-stats-radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: var(--nexus-stats-transition);
+}
+
+.nexus-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.nexus-stats-card-header {
+    padding: 20px 24px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--nexus-stats-text-muted);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.nexus-stats-card-header .dashicons {
+    margin-right: 8px;
+    color: var(--nexus-stats-emerald);
+}
+
+.nexus-stats-card-body {
+    padding: 15px 24px 24px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.nexus-stats-card-body.p-0 { padding: 0; }
+
+/* Progress Bar (Objectifs) */
+.nexus-stats-progress-wrapper {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    width: 100%;
+}
+
+.nexus-stats-theme-light .nexus-stats-progress-wrapper {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nexus-stats-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--nexus-stats-blue), var(--nexus-stats-emerald));
+    width: 0%;
+    transition: width 1s ease-in-out;
+}
+
+/* Typographie Spécifique */
+.nexus-stats-stat {
+    font-size: 42px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    color: var(--nexus-stats-text-main);
+}
+
+/* ==========================================================================
+ * Effets Spéciaux & Composants spécifiques
+ * ========================================================================== */
+
+/* Visiteurs en direct */
+.nexus-stats-live-card {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(26, 26, 26, 0.8));
+    border-color: rgba(0, 255, 136, 0.2);
+}
+
+.pulse-emerald {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--nexus-stats-emerald);
+    border-radius: 50%;
+    margin-right: 10px;
+    animation: pulse-green 2s infinite;
+}
+
+.pulse-text {
+    color: var(--nexus-stats-emerald);
+    text-shadow: 0 0 10px var(--nexus-stats-emerald-glow);
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+/* Switcher de Graphique */
+.chart-header-actions {
+    justify-content: space-between;
+}
+.chart-switcher {
+    display: flex;
+    background: var(--nexus-stats-badge-bg);
+    border-radius: 6px;
+    padding: 2px;
+}
+.switcher-btn {
+    background: none;
+    border: none;
+    color: var(--nexus-stats-text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--nexus-stats-transition);
+}
+.switcher-btn:hover { color: var(--nexus-stats-text-main); }
+.switcher-btn.active {
+    background: var(--nexus-stats-card-border);
+    color: var(--nexus-stats-emerald);
+}
+
+/* Wrapper de canvas */
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+.doughnut-wrapper {
+    height: 250px;
+}
+
+/* Listes Top Contenus */
+.nexus-stats-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nexus-stats-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--nexus-stats-card-border);
+    transition: background 0.2s;
+}
+
+.nexus-stats-list-item:last-child {
+    border-bottom: none;
+}
+
+.nexus-stats-list-item:hover {
+    background: var(--nexus-stats-hover-bg);
+}
+
+.nexus-stats-list-item.empty {
+    justify-content: center;
+    color: var(--nexus-stats-text-muted);
+    font-style: italic;
+}
+
+.nexus-stats-list-link {
+    color: var(--nexus-stats-text-main);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 15px;
+}
+
+.nexus-stats-list-link:hover {
+    color: var(--nexus-stats-emerald);
+}
+
+.nexus-stats-list-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nexus-stats-badge {
+    background: var(--nexus-stats-badge-bg);
+    color: var(--nexus-stats-text-main);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--nexus-stats-badge-border);
+}
+
+.nexus-stats-badge.emerald {
+    background: var(--nexus-stats-emerald-glow);
+    color: var(--nexus-stats-emerald);
+    border-color: transparent;
+}
+
+.nexus-stats-badge.red {
+    background: rgba(255, 0, 85, 0.1);
+    color: #ff0055;
+    border-color: transparent;
+}
+
+.nexus-stats-read-time {
+    font-size: 11px;
+    color: var(--nexus-stats-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nexus-stats-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Colonnes Admin WP Natives */
+.nexus-stats-viral {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00aa55;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    display: inline-block;
+    animation: pulse-green 3s infinite;
+}

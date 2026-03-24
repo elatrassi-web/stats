@@ -1,0 +1,241 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Nexus Stats 1.0.0\n"
+"POT-Creation-Date: 2024-03-23 15:00+0000\n"
+"PO-Revision-Date: 2024-03-23 15:00+0000\n"
+"Language-Team: \n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Stats Vues"
+msgstr "View Stats"
+
+msgid "Réglages Nexus Stats"
+msgstr "Nexus Stats Settings"
+
+msgid "Réglages"
+msgstr "Settings"
+
+msgid "Vues"
+msgstr "Views"
+
+msgid "Live"
+msgstr "Live"
+
+msgid "Stats Vues (24h)"
+msgstr "View Stats (24h)"
+
+msgid "Voir le tableau de bord complet"
+msgstr "See the complete dashboard"
+
+msgid "Rapport Stats"
+msgstr "Stats Report"
+
+msgid "Thème d'affichage"
+msgstr "Display Theme"
+
+msgid "Mode Sombre (Dark Theme)"
+msgstr "Dark Theme"
+
+msgid "Mode Clair (Light Theme)"
+msgstr "Light Theme"
+
+msgid "Délai d'actualisation En Direct (secondes)"
+msgstr "Live Refresh Rate (seconds)"
+
+msgid "15 secondes (Très rapide - Attention serveur)"
+msgstr "15 seconds (Very fast - Watch server load)"
+
+msgid "30 secondes (Rapide)"
+msgstr "30 seconds (Fast)"
+
+msgid "60 secondes (Recommandé - Économique)"
+msgstr "60 seconds (Recommended - Eco)"
+
+msgid "Mode Éco-Conception (Green IT)"
+msgstr "Eco-Design Mode (Green IT)"
+
+msgid "Ignorer les bots connus et optimiser les requêtes"
+msgstr "Ignore known bots and optimize queries"
+
+msgid "Activez cette option pour réduire la charge sur votre serveur en ne comptabilisant pas les robots d'indexation (Google, Bing, etc.)."
+msgstr "Enable this option to reduce server load by not tracking indexing robots (Google, Bing, etc.)."
+
+msgid "Mode \"Confidentialité Totale\" (RGPD Ready)"
+msgstr "\"Total Privacy\" Mode (GDPR Ready)"
+
+msgid "Anonymisation stricte (Zéro Cookie)"
+msgstr "Strict anonymization (Zero Cookie)"
+
+msgid "N'utilise plus le LocalStorage. Génère un identifiant de session volatile uniquement. Vous exempte potentiellement du bandeau de consentement."
+msgstr "No longer uses LocalStorage. Generates a volatile session ID only. Potentially exempts you from the consent banner."
+
+msgid "Objectif Mensuel de Vues"
+msgstr "Monthly Views Goal"
+
+msgid "Fixez un objectif pour activer la jauge de progression dans le tableau de bord (Gamification)."
+msgstr "Set a goal to activate the progress bar in the dashboard (Gamification)."
+
+msgid "Lien de Partage (Client-Ready)"
+msgstr "Share Link (Client-Ready)"
+
+msgid "Générez un mot de passe ou jeton ici (ex: \"client2026\"). Le tableau de bord sera visible sans être connecté à l'adresse :"
+msgstr "Generate a password or token here (e.g., \"client2026\"). The dashboard will be visible without logging in at the address:"
+
+msgid "Vue d'ensemble - Trend 2026"
+msgstr "Overview - 2026 Trend"
+
+msgid "Changer le thème"
+msgstr "Toggle theme"
+
+msgid "Date de début"
+msgstr "Start date"
+
+msgid "au"
+msgstr "to"
+
+msgid "Date de fin"
+msgstr "End date"
+
+msgid "Appliquer"
+msgstr "Apply"
+
+msgid "Aujourd'hui"
+msgstr "Today"
+
+msgid "30 Dernières Minutes"
+msgstr "Last 30 Minutes"
+
+msgid "Hier"
+msgstr "Yesterday"
+
+msgid "7 Derniers Jours"
+msgstr "Last 7 Days"
+
+msgid "30 Derniers Jours"
+msgstr "Last 30 Days"
+
+msgid "Mois Précédent"
+msgstr "Last Month"
+
+msgid "Période personnalisée..."
+msgstr "Custom period..."
+
+msgid "Comparer avec la période précédente"
+msgstr "Compare with the previous period"
+
+msgid "Vs Précédent"
+msgstr "Vs Previous"
+
+msgid "Exporter PDF"
+msgstr "Export PDF"
+
+msgid "Nettoyer Stats"
+msgstr "Clean Stats"
+
+msgid "Objectif Mensuel :"
+msgstr "Monthly Goal :"
+
+msgid "Vues Totales"
+msgstr "Total Views"
+
+msgid "Visiteurs Uniques"
+msgstr "Unique Visitors"
+
+msgid "Visiteurs En Direct"
+msgstr "Live Visitors"
+
+msgid "Évolution des vues"
+msgstr "Views evolution"
+
+msgid "Date de la note"
+msgstr "Note date"
+
+msgid "Lancement..."
+msgstr "Launch..."
+
+msgid "Texte de la note"
+msgstr "Note text"
+
+msgid "Ajouter la note"
+msgstr "Add note"
+
+msgid "Tendance"
+msgstr "Trend"
+
+msgid "Comparaison"
+msgstr "Comparison"
+
+msgid "Mobile vs Desktop"
+msgstr "Mobile vs Desktop"
+
+msgid "Origine du Trafic"
+msgstr "Traffic Origin"
+
+msgid "Géolocalisation"
+msgstr "Geolocation"
+
+msgid "Chargement..."
+msgstr "Loading..."
+
+msgid "Sites Référents & Engagement"
+msgstr "Referring Sites & Engagement"
+
+msgid "Langues des Navigateurs"
+msgstr "Browser Languages"
+
+msgid "Top Articles"
+msgstr "Top Posts"
+
+msgid "Top Pages"
+msgstr "Top Pages"
+
+msgid "clics"
+msgstr "clicks"
+
+msgid "Nexus Stats: %s clics sur cet élément"
+msgstr "Nexus Stats: %s clicks on this element"
+
+msgid "Vues (Précédent)"
+msgstr "Views (Previous)"
+
+msgid "Mobile"
+msgstr "Mobile"
+
+msgid "Desktop"
+msgstr "Desktop"
+
+msgid "Aucune donnée"
+msgstr "No data"
+
+msgid "Aucune donnée pour cette période."
+msgstr "No data for this period."
+
+msgid "Evergreen (Stable/Croissant)"
+msgstr "Evergreen (Stable/Growing)"
+
+msgid "Mourant (En baisse)"
+msgstr "Dying (Dropping)"
+
+msgid "Temps de lecture moyen"
+msgstr "Average read time"
+
+msgid "Temps de lecture moyen généré par cette source"
+msgstr "Average read time generated by this source"
+
+msgid "Vues apportées"
+msgstr "Views brought"
+
+msgid "Veuillez remplir la date et le texte."
+msgstr "Please fill in the date and text."
+
+msgid "Rapport_Nexus_Stats.pdf"
+msgstr "Nexus_Stats_Report.pdf"
+
+msgid "Voulez-vous vraiment supprimer le trafic fantôme (bots à 0 seconde) ?"
+msgstr "Are you sure you want to delete ghost traffic (0-second bots)?"
+
+msgid "Nettoyage terminé : %s vues fantômes supprimées."
+msgstr "Cleanup finished: %s ghost views deleted."
